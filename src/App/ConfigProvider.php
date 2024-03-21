@@ -1,6 +1,8 @@
 <?php
 namespace App;
 
+use App\Command\DownCommand;
+
 class ConfigProvider
 {
     public function __invoke() : array
@@ -8,7 +10,9 @@ class ConfigProvider
         ini_set('bcmath.scale', 8);
 
         return [
-            'commands' => []
+            'commands' => [
+                DownCommand::class
+            ]
         ];
     }
 }
