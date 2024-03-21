@@ -7,6 +7,8 @@ class ConfigProvider
     {
         ini_set('bcmath.scale', 8);
 
-        return [];
+        return [
+            'commands' => []
+        ];
     }
 }
