@@ -1,0 +1,37 @@
+{
+  "minimum-stability": "dev",
+  "require": {
+    "php": ">=8.2",
+    "web3promax/binance": "dev-master",
+    "symfony/console": "^v7.0.4",
+    "laminas/laminas-servicemanager": "^3.21",
+    "laminas/laminas-config-aggregator": "^1.14",
+    "laminas/laminas-log": "^2.17.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^10"
+  },
+  "repositories": [
+    {
+      "type": "package",
+      "package": {
+        "name": "web3promax/binance",
+        "version": "dev-master",
+        "dist": {
+          "url": "https://github.com/web3promax/binance/archive/refs/heads/master.zip",
+          "type": "zip"
+        },
+        "source": {
+          "url": "https://github.com/web3promax/binance.git",
+          "type": "git",
+          "reference": "refs/heads/master"
+        }
+      }
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "App\\": "src/App"
+    }
+  }
+}
