@@ -13,20 +13,8 @@
   },
   "repositories": [
     {
-      "type": "package",
-      "package": {
-        "name": "web3promax/binance",
-        "version": "dev-master",
-        "dist": {
-          "url": "https://github.com/web3promax/binance/archive/refs/heads/master.zip",
-          "type": "zip"
-        },
-        "source": {
-          "url": "https://github.com/web3promax/binance.git",
-          "type": "git",
-          "reference": "refs/heads/master"
-        }
-      }
+      "type": "vcs",
+      "url": "https://github.com/web3promax/binance.git"
     }
   ],
   "autoload": {
