@@ -2,14 +2,13 @@
 require 'vendor/autoload.php';
 
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
+
+$container = require 'config/container.php';
 
 $app = new Application();
 $app->setCatchExceptions(false);
-$container = require 'config/container.php';
-$config = $container->get('config');
-foreach ($config['commands'] ?? [] as $serviceName) {
-    $cmd = $container->get($serviceName);
-    $app->add($cmd);
-}
 
+$config = $container->get('config');
+$app->setCommandLoader(new ContainerCommandLoader($container, $config['commands']));
 $app->run();
