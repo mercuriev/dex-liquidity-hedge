@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="hedgehog" type="docker-deploy" factoryName="docker-image" server-name="Docker">
+  <configuration default="false" name="Start" type="docker-deploy" factoryName="docker-image" server-name="Docker">
     <deployment type="docker-image">
       <settings>
         <option name="imageTag" value="php-cli" />
-        <option name="command" value="hedge.php down BTCFDUSD 40000" />
+        <option name="command" value="-d xdebug.client_host=172.21.0.1 -d xdebug.mode=debug -d xdebug.start_with_request=yes hedge.php start" />
         <option name="containerName" value="" />
         <option name="envVars">
           <list>
