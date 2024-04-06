@@ -5,8 +5,10 @@ use Binance\Account\Account;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
+use Binance\Exception\InsuficcientBalance;
 use Binance\Exception\StopPriceTrigger;
 use Binance\MarginIsolatedApi;
+use Binance\Order\AbstractOrder;
 use Binance\Order\LimitOrder;
 use Binance\Order\StopOrder;
 use Laminas\Log\Logger;
@@ -15,16 +17,41 @@ use Laminas\Log\Processor\ProcessorInterface;
 
 abstract class Hedge extends \SplFixedArray
 {
-    private Account $acc;
+    /**
+     * @var array Prices to do hedging
+     */
+    protected array $range = [];
+    /**
+     * @var float difference between each step
+     */
+    protected float $step;
+
+    protected Account $acc;
+
+    /**
+     * Build order to enter hedging position.
+     *
+     * @param int $index
+     * @return AbstractOrder
+     */
+    abstract protected function do(int $index) : AbstractOrder;
+
+    /**
+     * Build order to exit hedging position in case of price reverse.
+     *
+     * @param int $index
+     * @return AbstractOrder
+     */
+    abstract protected function undo(int $index) : AbstractOrder;
 
     public function __construct(
-        private Logger                     $log,
-        private readonly MarginIsolatedApi $api,
-        private readonly string            $symbol,
-        private readonly string            $keep,           // token to hold on
-        private readonly float             $min,
-        private readonly float             $max,
-        private readonly float             $amount
+        protected Logger                     $log,
+        protected readonly MarginIsolatedApi $api,
+        protected readonly string            $symbol,
+        protected readonly string            $keep,           // token to hold on
+        protected readonly float             $min,
+        protected readonly float             $max,
+        protected readonly float             $amount
     )
     {
         // Prepend log entries with "HEDGE symbol:"
@@ -65,16 +92,19 @@ abstract class Hedge extends \SplFixedArray
         }
 
         // TODO use precision from exchangeInfo
-        // +1 because lowest step doesn't have an open order
-        $amount = round($this->amount / (count($this) + 1), 5, PHP_ROUND_HALF_DOWN);
-        $prices = $this->calcPrices();
+        // TODO stop limit prices to make it behave like market order (avoid slippery)
+        $parts = count($this) - 1;
+        $this->step = round(($this->max - $this->min) / $parts, 2);
+        for ($i = 0; $i < $parts; $i++) {
+            $this->range[] = $this->max - ($this->step * $i);
+        }
+        $this->range[] = $this->min;
+        $this->log->info(sprintf('Range: %.2f - %.2f (Step: %.2f)', min($this->range), max($this->range), $this->step));
+
         for ($i = 0; $i < $size; $i++) {
-            $order = new StopOrder();
-            $order->symbol = $this->symbol;
-            $order->side = 'SELL';
-            $order->quantity = $amount;
-            $order->setPrice($prices[$i]);
+            $order = $this->do($i);
             $this[$i] = $this->post($order);
+            $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $order->side, $order->price));
         }
     }
 
@@ -101,7 +131,25 @@ abstract class Hedge extends \SplFixedArray
         foreach ($this as $i => $order)
         {
             if ($order->match($trade)) {
-                $this->log->info($order->oneline());
+                if ($order->isFilled()) {
+                    $this->log->info(sprintf('▶%u: %-4s %.2f', $i,
+                        'SELL' == $order->side ? 'SOLD' : 'BGHT',
+                    $order->price));
+
+                    $mirror = $this->undo($i);
+                    $this[$i] = $this->post($mirror);
+
+                    $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $mirror->side, $mirror->price));
+
+                    // replace all other filled with opposite order
+                    /*foreach ($this as $j => $other) {
+                        if ($i == $j) continue; // do not replace current
+                        if ($other->isFilled()) {
+                            $mirror = $this->mirror($other);
+                            $this[$j] = $this->post($mirror);
+                        }
+                    }*/
+                }
             }
         }
     }
@@ -118,6 +166,7 @@ abstract class Hedge extends \SplFixedArray
      */
     private function post(StopOrder|LimitOrder $order) : StopOrder|LimitOrder
     {
+        // TODO autoRepayAtCancel = FALSE (so that we not pay 1hr interest each order)
         try {
             $order = $this->api->post($order);
         }
@@ -129,24 +178,10 @@ abstract class Hedge extends \SplFixedArray
             $limit->quantity = $order->quantity;
             $order = $this->api->post($limit);
         }
-        #$this->log->info($order->oneline());
-        $this->log->info(sprintf('%s %s %.2f %.5f', $order->orderId, $order->side, $order->price, $order->quantity));
-        return $order;
-    }
-
-    private function calcPrices() : array
-    {
-        $interval = ($this->max - $this->min);
-        $parts = count($this) - 1;
-        // TODO use precision from exchangeinfo
-        $step = round($interval / $parts, 2);
-
-        $milestones = [];
-        for ($i = 0; $i < $parts; $i++) {
-            $milestones[] = $this->max - ($step * $i);
+        catch (InsuficcientBalance $e) {
+            xdebug_break();
         }
-        $milestones[] = $this->min;
-        return $milestones;
+        return $order;
     }
 
     private function account(bool $log = true)
