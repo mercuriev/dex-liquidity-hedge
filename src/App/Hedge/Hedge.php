@@ -99,7 +99,11 @@ abstract class Hedge extends \SplFixedArray
             $this->range[] = $this->max - ($this->step * $i);
         }
         $this->range[] = $this->min;
-        $this->log->info(sprintf('Range: %.2f - %.2f (Step: %.2f)', min($this->range), max($this->range), $this->step));
+        $this->log->info(sprintf(
+            'Range: %.2f - %.2f (%.2f%%) / Step: %.2f (%.2f%%)',
+            min($this->range), max($this->range), (($max-$min)/$max * 100),
+            $this->step, ($this->step/$max * 100)
+        ));
 
         for ($i = 0; $i < $size; $i++) {
             $order = $this->do($i);
