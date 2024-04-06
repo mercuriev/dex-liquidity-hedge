@@ -41,28 +41,17 @@ class KeepCommand extends Command
         $max    = $input->getArgument('MAX');
         $amount = $input->getArgument('AMOUNT');
 
+        // subscribe before Hedge so that we always catch Trades for our orders
+        $this->ws->subscribe("$symbol@trade");
+
         $hedge = new HedgeSell($this->log, $this->api, $symbol, $token, $min, $max, $amount);
 
-        // read price from websockets and pass to business logic class
-/*        $this->ws->kline($symbol, WebsocketsApi::INTERVAL_1S);
-        while(true) {
-            $kline = $this->ws->receive(1);
-            if ($kline instanceof Kline) {
-                ($this->hedge)($kline->close);
-            }
-            else {
-                // empty feed, wait?
-            }
-        }*/
-
-        $this->ws->subscribe("$symbol@trade");
         while ($trade = $this->ws->receive()) {
             if ($trade instanceof Trade) {
                 ($hedge)($trade);
             }
         }
 
-        /** @noinspection PhpUnreachableStatementInspection Timeout */
         return Command::FAILURE;
     }
 }
