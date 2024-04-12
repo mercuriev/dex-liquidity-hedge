@@ -3,36 +3,60 @@ namespace App\Hedge;
 
 use Binance\Exception\BinanceException;
 use Binance\Exception\InsuficcientBalance;
+use Binance\Exception\InvalidPrices;
 use Binance\Exception\StopPriceTrigger;
 use Binance\Order\LimitOrder;
 use Binance\Order\StopOrder;
+use function Binance\truncate;
 
 class HedgeSell extends Hedge
 {
+    protected function getBorrowAsset(): string
+    {
+        return $this->account->baseAsset->asset;
+    }
+
+    /**
+     * @throws InsuficcientBalance
+     * @throws BinanceException
+     * @throws StopPriceTrigger
+     * @throws InvalidPrices
+     */
     protected function new(int $index): null|StopOrder|LimitOrder
     {
-        $amount = round($this->amount / (count($this)), 5, PHP_ROUND_HALF_DOWN);
+        $amount = truncate($this->account->baseAsset->free, 5);
+        $amount = truncate($amount / (count($this)), 5);
+
         $new = new StopOrder();
-        $new->newOrderRespType = 'FULL';  // important for offline matching
         $new->symbol = $this->symbol;
         $new->side = 'SELL';
         $new->quantity = $amount;
-        $new->setPrice($this->range[$index]);
+        $new->setPrice($this->prices[$index]);
 
-        $this[$index] = $this->post($new);
-
-        return $this[$index];
+        return $this[$index] = $this->post($new);
     }
 
+    /**
+     * @throws InsuficcientBalance
+     * @throws BinanceException
+     * @throws StopPriceTrigger
+     * @throws InvalidPrices
+     */
     protected function filled(int $index): null|StopOrder|LimitOrder
     {
         $up = $index;
         while($this->offsetExists(--$up)) {
             $prev = $this[$up];
             if ($prev->isFilled()) {
-                $flip = $this->flip($prev);
+                $flip = new StopOrder();
+                $flip->symbol = $this->symbol;
+                $flip->side = 'BUY';
+                $flip->price = $prev->price;
+                if ($flip instanceof StopOrder) {
+                    $flip->stopPrice = $flip->price;
+                }
+                $flip->quantity = $prev->quantity;
                 $this[$up] = $this->post($flip);
-                // FIXME
                 $this->log($up);
             }
         }
@@ -42,26 +66,11 @@ class HedgeSell extends Hedge
             $next = $this[$down];
             if ($next->isFilled()) {
                 $this->new($down);
-                // FIXME
                 $this->log($down);
             }
         }
 
         return null;
-    }
-
-    private function flip($order)
-    {
-        $new = new StopOrder();
-        $new->side = 'BUY';
-        $new->price = $order->price;
-        if ($new instanceof StopOrder) {
-            $new->newOrderRespType = 'FULL';  // important for offline matching
-            $new->stopPrice = $new->price;
-        }
-        $new->quantity = $order->quantity;
-
-        return $new;
     }
 
     /**
@@ -87,9 +96,6 @@ class HedgeSell extends Hedge
             $limit->price = $order->price;
             $limit->quantity = $order->quantity;
             $order = $this->api->post($limit);
-        }
-        catch (InsuficcientBalance $e) {
-            xdebug_break();
         }
         return $order;
     }

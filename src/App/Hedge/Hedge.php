@@ -16,16 +16,18 @@ use Laminas\Log\Processor\ProcessorInterface;
 abstract class Hedge extends \SplFixedArray
 {
     /**
-     * @var array Prices to do hedging
+     * @var array Price levels to put orders.
      */
-    protected array $range = [];
+    protected array $prices = [];
+
     /**
-     * @var float difference between each step
+     * @var float Price difference between each level.
      */
     protected float $step;
 
-    protected Account $acc;
+    protected Account $account;
 
+    abstract protected function getBorrowAsset() : string;
     abstract protected function new(int $index) : ?AbstractOrder;
     abstract protected function filled(int $index) : ?AbstractOrder;
 
@@ -37,10 +39,8 @@ abstract class Hedge extends \SplFixedArray
         protected Logger                     $log,
         protected readonly MarginIsolatedApi $api,
         protected readonly string            $symbol,
-        protected readonly string            $keep,           // token to hold on
         protected readonly float             $min,
-        protected readonly float             $max,
-        protected readonly float             $amount
+        protected readonly float             $max
     )
     {
         // Prepend log entries with "HEDGE symbol:"
@@ -59,57 +59,27 @@ abstract class Hedge extends \SplFixedArray
         //
         $api->symbol = $this->symbol;
 
-        $size = $this->findSize();
+        // TODO borrow exactly as much is not enough to have $amount
+        $this->fetchAccount();
+        $this->borrow();
+
+        $size = $this->callApiForMaxOrders();
         parent::__construct($size);
 
-        // TODO borrow exactly as much is not enough to have $amount
-        $this->account();
-        $max = $this->api->maxBorrowable($this->keep);
-        $this->log->info(sprintf('Max borrowable %s: %.5f', $this->keep, $max));
-        if ($this->amount > $this->acc->baseAsset->free) {
-            try {
-                $this->api->borrow($this->keep, $this->amount);
-                $this->account();
-            }
-            catch(ExceedBorrowable $e) {
-                $max = $this->api->maxBorrowable($this->keep);
-                $this->log->err("Unable to borrow $this->amount $this->keep. (Max: $max)");
-                throw $e;
-            }
-        }
-
-        // TODO use precision from exchangeInfo so that crypto-crypto pairs works
-        $parts = count($this) - 1;
-        $this->step = round(($this->max - $this->min) / $parts, 2);
-        for ($i = 0; $i < $parts; $i++) {
-            $this->range[] = $this->max - ($this->step * $i);
-        }
-        $this->range[] = $this->min;
+        // first call fills the prices array and calc step
+        $this->prices = $this->getPrices();
         $this->log->info(sprintf(
             'Range: %.2f - %.2f (%.2f%%) / Step: %.2f (%.2f%%)',
             $this->min, $this->max, (($this->max - $this->min)/$this->max * 100),
             $this->step, ($this->step/$this->max * 100)
         ));
 
+        // populate full of orders online
         for ($i = 0; $i < $size; $i++) {
             if ($this->new($i)) {
                 $this->log($i);
             }
         }
-    }
-
-    /**
-     * Cancel all ongoing trades.
-     *
-     */
-    public function __destruct()
-    {
-        foreach ($this as $o) {
-            if ($o) {
-                $this->api->cancel($o);
-            }
-        }
-        // TODO repay if no balance changes???? or keep for the next to avoid an hour interest fee
     }
 
     /**
@@ -130,6 +100,52 @@ abstract class Hedge extends \SplFixedArray
                     if ($mirror) $this->log($i);
                 }
             }
+        }
+    }
+
+    /**
+     * @throws ExceedBorrowable
+     * @throws BinanceException
+     */
+    protected function borrow(): void
+    {
+        $asset = $this->getBorrowAsset();
+
+        try {
+            $max = $this->api->maxBorrowable($asset);
+            if (0 == $max) { // FIXME here is assumed that already borrowed the same asset. Work out cases when opposite asset loan limits total borrowable.
+                return;
+            }
+        }
+        catch (BinanceException $e) {
+            if (-3045 == $e->getCode()) { // "The system does not have enough asset now."
+                $this->log->err("Binance pool of $asset is empty. Try later.");
+            }
+            throw $e;
+        }
+
+        try {
+            $this->api->borrow($asset, $max);
+            $this->fetchAccount();
+        }
+        catch(ExceedBorrowable $e) {
+            $max = $this->api->maxBorrowable($asset);
+            $this->log->err("Unable to borrow $max $asset. Exceed limit.");
+            throw $e;
+        }
+    }
+
+    /**
+     * @throws BinanceException
+     */
+    private function repayAll() : void
+    {
+        if ($this->account->baseAsset->borrowed > 0) {
+            $this->api->repay($this->account->baseAsset->asset, $this->account->baseAsset->borrowed);
+        }
+
+        if ($this->account->quoteAsset->borrowed > 0) {
+            $this->api->repay($this->account->quoteAsset->asset, $this->account->quoteAsset->borrowed);
         }
     }
 
@@ -158,23 +174,52 @@ abstract class Hedge extends \SplFixedArray
         $this->log->info($msg);
     }
 
+    protected function getPrices() : array
+    {
+        if (!$this->prices) {
+
+            // TODO use precision from exchangeInfo so that crypto-crypto pairs works
+            $parts = count($this) - 1;
+            $this->step = round(($this->max - $this->min) / $parts, 2);
+            for ($i = 0; $i < $parts; $i++) {
+                $this->prices[] = $this->max - ($this->step * $i);
+            }
+            $this->prices[] = $this->min;
+        }
+        return $this->prices;
+    }
+
     /**
      * @throws BinanceException
      */
-    private function account(): void
+    protected function fetchAccount(): void
     {
-        $this->acc = $this->api->getAccount($this->symbol);
+        $this->account = $this->api->getAccount($this->symbol);
         $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
-            $this->acc->baseAsset->asset, $this->acc->baseAsset->free, $this->acc->baseAsset->borrowed,
-            $this->acc->quoteAsset->asset, $this->acc->quoteAsset->free, $this->acc->quoteAsset->borrowed,
+            $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
+            $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
         );
         $this->log->info($msg);
     }
 
-    private function findSize() : int
+    private function callApiForMaxOrders() : int
     {
         // Number of open orders is limited by remote side, so choose grid size
         $info = $this->api->exchangeInfo();
         return $info->getFilter($this->symbol, 'MAX_NUM_ALGO_ORDERS')['maxNumAlgoOrders'];
+    }
+
+    /**
+     * Cancel all ongoing trades.
+     *
+     */
+    public function __destruct()
+    {
+        foreach ($this as $o) {
+            if ($o) {
+                $this->api->cancel($o);
+            }
+        }
+        // TODO repay if no balance changes???? or keep for the next to avoid an hour interest fee
     }
 }

@@ -1,8 +1,8 @@
 <?php
 namespace App;
 
-use App\Command\DownCommand;
-use App\Command\KeepCommand;
+use App\Command\BuyCommand;
+use App\Command\SellCommand;
 use App\Command\StartCommand;
 
 class ConfigProvider
@@ -14,8 +14,8 @@ class ConfigProvider
         return [
             'commands' => [
                 'start'     => StartCommand::class,
-                'keep'      => KeepCommand::class,
-                'down'      => DownCommand::class
+                'sell'      => SellCommand::class,
+                'buy'       => BuyCommand::class
             ]
         ];
     }
