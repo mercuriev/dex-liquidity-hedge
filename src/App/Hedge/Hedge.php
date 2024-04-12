@@ -93,7 +93,7 @@ abstract class Hedge extends \SplFixedArray
         for ($i = 0; $i < $size; $i++) {
             $order = $this->trigger($i);
             $this[$i] = $this->post($order);
-            $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $order->side, $order->price));
+            $this->log($i);
         }
     }
 
@@ -121,17 +121,47 @@ abstract class Hedge extends \SplFixedArray
         {
             if ($order->match($trade)) {
                 if ($order->isFilled()) {
-                    $this->log->info(sprintf('▶%u: %-4s %.2f', $i,
-                        'SELL' == $order->side ? 'SOLD' : 'BGHT',
-                    $order->price));
+                    $this->log($i);
 
                     $mirror = $this->trigger($i);
                     $this[$i] = $this->post($mirror);
 
-                    $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $mirror->side, $mirror->price));
+                    // log again that new order is POST'ed
+                    $this->log($i);
                 }
             }
         }
+    }
+
+    /**
+     * Returned string is for sprintf with one placeholder for $i (%u)
+     *
+     * @param StopOrder|LimitOrder $o
+     * @return string
+     */
+    protected function log(int $index) : void
+    {
+        if (!$this[$index]) return;
+        /** @var AbstractOrder $order */
+        $order = $this[$index];
+
+        if ($order->isFilled()) {
+            $msg = '▷';
+            $status = 'SELL' == $order->side ? 'SOLD' : 'BGHT';
+        }
+        else {
+            $msg = '▶';
+            $status = $order->side;
+        }
+        $msg .= sprintf(
+            '%u: %-4s %.2f',
+            $index,
+            $status,
+            $order->price
+        );
+        $msg .= (isset($order->stopPrice) ? sprintf(' @ %.2f', $order->stopPrice) : '');
+
+        $this->log->info($msg);
     }
 
     /**
