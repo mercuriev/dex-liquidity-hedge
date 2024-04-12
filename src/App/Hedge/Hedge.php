@@ -5,8 +5,6 @@ use Binance\Account\Account;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
-use Binance\Exception\InsuficcientBalance;
-use Binance\Exception\StopPriceTrigger;
 use Binance\MarginIsolatedApi;
 use Binance\Order\AbstractOrder;
 use Binance\Order\LimitOrder;
@@ -28,8 +26,13 @@ abstract class Hedge extends \SplFixedArray
 
     protected Account $acc;
 
-    abstract protected function trigger(int $index) : AbstractOrder;
+    abstract protected function new(int $index) : ?AbstractOrder;
+    abstract protected function filled(int $index) : ?AbstractOrder;
 
+    /**
+     * @throws ExceedBorrowable
+     * @throws BinanceException
+     */
     public function __construct(
         protected Logger                     $log,
         protected readonly MarginIsolatedApi $api,
@@ -43,8 +46,8 @@ abstract class Hedge extends \SplFixedArray
         // Prepend log entries with "HEDGE symbol:"
         $this->log = clone $log;
         $this->log->addProcessor(new class($this->symbol) implements ProcessorInterface {
-            public function __construct(private string $symbol) {}
-            public function process(array $event)
+            public function __construct(private readonly string $symbol) {}
+            public function process(array $event): array
             {
                 $event['message'] = implode(' ', [
                     'Hedge', $this->symbol, ':', $event['message']
@@ -70,7 +73,7 @@ abstract class Hedge extends \SplFixedArray
             }
             catch(ExceedBorrowable $e) {
                 $max = $this->api->maxBorrowable($this->keep);
-                $this->log->err("Unable to borrow {$this->amount} {$this->keep}. (Max: $max)");
+                $this->log->err("Unable to borrow $this->amount $this->keep. (Max: $max)");
                 throw $e;
             }
         }
@@ -89,43 +92,42 @@ abstract class Hedge extends \SplFixedArray
         ));
 
         for ($i = 0; $i < $size; $i++) {
-            $order = $this->trigger($i);
-            $this[$i] = $this->post($order);
-            $this->log($i);
+            if ($this->new($i)) {
+                $this->log($i);
+            }
         }
     }
 
+    /**
+     * Cancel all ongoing trades.
+     *
+     */
     public function __destruct()
     {
         foreach ($this as $o) {
-            $this->api->cancel($o);
+            if ($o) {
+                $this->api->cancel($o);
+            }
         }
         // TODO repay if no balance changes???? or keep for the next to avoid an hour interest fee
     }
 
     /**
-     * Update the current market price and take action.
-     *
-     * @param float $price
-     * @return void
-     * @throws ExceedBorrowable
+     * Feed Trade event from exchange so that this can match existing orders and post new.
      */
-    public function __invoke(Trade $trade)
+    public function __invoke(Trade $trade) : void
     {
-        /**
-         * @var StopOrder|LimitOrder $order
-         */
+        /** @var StopOrder|LimitOrder $order */
         foreach ($this as $i => $order)
         {
             if ($order->match($trade)) {
                 if ($order->isFilled()) {
                     $this->log($i);
 
-                    $mirror = $this->trigger($i);
-                    $this[$i] = $this->post($mirror);
+                    $mirror = $this->filled($i);
 
                     // log again that new order is POST'ed
-                    $this->log($i);
+                    if ($mirror) $this->log($i);
                 }
             }
         }
@@ -157,46 +159,16 @@ abstract class Hedge extends \SplFixedArray
     }
 
     /**
-     * If stop price is rejected post LIMIT order instead.
-     *
-     * @param StopOrder $order
-     * @return StopOrder|LimitOrder
      * @throws BinanceException
-     * @throws StopPriceTrigger
-     * @throws \Binance\Exception\InsuficcientBalance
-     * @throws \Binance\Exception\InvalidPrices
      */
-    private function post(StopOrder|LimitOrder $order) : StopOrder|LimitOrder
-    {
-        // TODO autoRepayAtCancel = FALSE (so that we not pay 1hr interest each order)
-        try {
-            $order = $this->api->post($order);
-        }
-        catch (StopPriceTrigger) { // current price is lower
-            $limit = new LimitOrder();
-            $limit->symbol = $this->symbol;
-            $limit->side = 'SELL';
-            $limit->price = $order->price;
-            $limit->quantity = $order->quantity;
-            $order = $this->api->post($limit);
-        }
-        catch (InsuficcientBalance $e) {
-            xdebug_break();
-        }
-        return $order;
-    }
-
-    private function account(bool $log = true)
+    private function account(): void
     {
         $this->acc = $this->api->getAccount($this->symbol);
-        if ($log) {
-            $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
-                $this->acc->baseAsset->asset, $this->acc->baseAsset->free, $this->acc->baseAsset->borrowed,
-                $this->acc->quoteAsset->asset, $this->acc->quoteAsset->free, $this->acc->quoteAsset->borrowed,
-            );
-            $this->log->info($msg);
-        }
-        return $this->acc;
+        $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
+            $this->acc->baseAsset->asset, $this->acc->baseAsset->free, $this->acc->baseAsset->borrowed,
+            $this->acc->quoteAsset->asset, $this->acc->quoteAsset->free, $this->acc->quoteAsset->borrowed,
+        );
+        $this->log->info($msg);
     }
 
     private function findSize() : int
