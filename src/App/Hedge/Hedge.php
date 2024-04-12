@@ -28,21 +28,7 @@ abstract class Hedge extends \SplFixedArray
 
     protected Account $acc;
 
-    /**
-     * Build order to enter hedging position.
-     *
-     * @param int $index
-     * @return AbstractOrder
-     */
-    abstract protected function do(int $index) : AbstractOrder;
-
-    /**
-     * Build order to exit hedging position in case of price reverse.
-     *
-     * @param int $index
-     * @return AbstractOrder
-     */
-    abstract protected function undo(int $index) : AbstractOrder;
+    abstract protected function trigger(int $index) : AbstractOrder;
 
     public function __construct(
         protected Logger                     $log,
@@ -91,8 +77,7 @@ abstract class Hedge extends \SplFixedArray
             }
         }
 
-        // TODO use precision from exchangeInfo
-        // TODO stop limit prices to make it behave like market order (avoid slippery)
+        // TODO use precision from exchangeInfo so that crypto-crypto pairs works
         $parts = count($this) - 1;
         $this->step = round(($this->max - $this->min) / $parts, 2);
         for ($i = 0; $i < $parts; $i++) {
@@ -106,7 +91,7 @@ abstract class Hedge extends \SplFixedArray
         ));
 
         for ($i = 0; $i < $size; $i++) {
-            $order = $this->do($i);
+            $order = $this->trigger($i);
             $this[$i] = $this->post($order);
             $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $order->side, $order->price));
         }
@@ -140,19 +125,10 @@ abstract class Hedge extends \SplFixedArray
                         'SELL' == $order->side ? 'SOLD' : 'BGHT',
                     $order->price));
 
-                    $mirror = $this->undo($i);
+                    $mirror = $this->trigger($i);
                     $this[$i] = $this->post($mirror);
 
                     $this->log->info(sprintf('▷%u: %-4s %.2f', $i, $mirror->side, $mirror->price));
-
-                    // replace all other filled with opposite order
-                    /*foreach ($this as $j => $other) {
-                        if ($i == $j) continue; // do not replace current
-                        if ($other->isFilled()) {
-                            $mirror = $this->mirror($other);
-                            $this[$j] = $this->post($mirror);
-                        }
-                    }*/
                 }
             }
         }
