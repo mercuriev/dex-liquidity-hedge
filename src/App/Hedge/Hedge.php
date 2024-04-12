@@ -131,12 +131,6 @@ abstract class Hedge extends \SplFixedArray
         }
     }
 
-    /**
-     * Returned string is for sprintf with one placeholder for $i (%u)
-     *
-     * @param StopOrder|LimitOrder $o
-     * @return string
-     */
     protected function log(int $index) : void
     {
         if (!$this[$index]) return;
