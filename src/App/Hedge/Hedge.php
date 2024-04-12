@@ -140,11 +140,11 @@ abstract class Hedge extends \SplFixedArray
         $order = $this[$index];
 
         if ($order->isFilled()) {
-            $msg = '▷';
+            $msg = '▶';
             $status = 'SELL' == $order->side ? 'SOLD' : 'BGHT';
         }
         else {
-            $msg = '▶';
+            $msg = '▷';
             $status = $order->side;
         }
         $msg .= sprintf(
