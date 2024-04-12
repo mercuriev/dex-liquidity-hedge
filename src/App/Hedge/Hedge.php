@@ -56,9 +56,7 @@ abstract class Hedge extends \SplFixedArray
         //
         $api->symbol = $this->symbol;
 
-        // Number of open orders is limited by remote side, so choose grid size
-        $info = $this->api->exchangeInfo();
-        $size = $info->getFilter($this->symbol, 'MAX_NUM_ALGO_ORDERS')['maxNumAlgoOrders'];
+        $size = $this->findSize();
         parent::__construct($size);
 
         // TODO borrow exactly as much is not enough to have $amount
@@ -205,5 +203,12 @@ abstract class Hedge extends \SplFixedArray
             $this->log->info($msg);
         }
         return $this->acc;
+    }
+
+    private function findSize() : int
+    {
+        // Number of open orders is limited by remote side, so choose grid size
+        $info = $this->api->exchangeInfo();
+        return $info->getFilter($this->symbol, 'MAX_NUM_ALGO_ORDERS')['maxNumAlgoOrders'];
     }
 }
