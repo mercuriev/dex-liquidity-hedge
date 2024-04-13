@@ -2,6 +2,7 @@
 namespace App\Hedge;
 
 use Binance\Account\Account;
+use Binance\Entity\ExchangeInfo;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
@@ -26,6 +27,8 @@ abstract class Hedge extends \SplFixedArray
     protected float $step;
 
     protected Account $account;
+    protected ExchangeInfo $info;
+    protected int $precision;
 
     abstract protected function getBorrowAsset() : string;
     abstract protected function new(int $index) : ?AbstractOrder;
@@ -65,6 +68,10 @@ abstract class Hedge extends \SplFixedArray
 
         $size = $this->callApiForMaxOrders();
         parent::__construct($size);
+
+        //
+        $step = $this->info->getFilter($this->symbol, 'LOT_SIZE')['stepSize'];
+        $this->precision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
 
         // first call fills the prices array and calc step
         $this->prices = $this->getPrices();
@@ -205,8 +212,8 @@ abstract class Hedge extends \SplFixedArray
     private function callApiForMaxOrders() : int
     {
         // Number of open orders is limited by remote side, so choose grid size
-        $info = $this->api->exchangeInfo();
-        return $info->getFilter($this->symbol, 'MAX_NUM_ALGO_ORDERS')['maxNumAlgoOrders'];
+        $this->info = $this->api->exchangeInfo();
+        return $this->info->getFilter($this->symbol, 'MAX_NUM_ALGO_ORDERS')['maxNumAlgoOrders'];
     }
 
     /**

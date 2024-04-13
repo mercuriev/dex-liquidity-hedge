@@ -24,8 +24,8 @@ class HedgeSell extends Hedge
      */
     protected function new(int $index): null|StopOrder|LimitOrder
     {
-        $amount = truncate($this->account->baseAsset->free, 5);
-        $amount = truncate($amount / (count($this)), 5);
+        $amount = truncate($this->account->baseAsset->free, $this->precision);
+        $amount = truncate($amount / (count($this)), $this->precision);
 
         $new = new StopOrder();
         $new->symbol = $this->symbol;
