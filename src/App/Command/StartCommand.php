@@ -18,6 +18,10 @@ use WebSocket\BadOpcodeException;
 
 class StartCommand extends Command
 {
+    protected string $symbol;
+    protected float $min;
+    protected float $max;
+
     public function __construct(protected readonly Logger            $log,
                                 protected readonly WebsocketsApi     $ws,
                                 protected readonly MarginIsolatedApi $api)
