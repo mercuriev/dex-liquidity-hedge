@@ -38,10 +38,10 @@ class StartCommand extends Command
     protected function configure(): void
     {
         $this->setDescription('')
-            ->addArgument('SYMBOL', InputArgument::REQUIRED, )
-            ->addArgument('MIN', InputArgument::REQUIRED, )
-            ->addArgument('MAX', InputArgument::REQUIRED, )
-            ->addArgument('AMOUNT', InputArgument::OPTIONAL, 'Max borrowable if empty');
+            ->addArgument('SYMBOL', InputArgument::REQUIRED)
+            ->addArgument('MIN', InputArgument::REQUIRED)
+            ->addArgument('MAX', InputArgument::REQUIRED)
+        ;
     }
 
     /**
@@ -51,16 +51,16 @@ class StartCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $symbol = $input->getArgument('SYMBOL');
-        $min    = $input->getArgument('MIN');
-        $max    = $input->getArgument('MAX');
-        $amount = $input->getArgument('AMOUNT');
+        $this->symbol = $input->getArgument('SYMBOL');
+        $this->min    = $input->getArgument('MIN');
+        $this->max    = $input->getArgument('MAX');
 
         // subscribe before Hedge so that we always catch Trades for our orders
-        $this->ws->subscribe("$symbol@trade");
+        $this->ws->subscribe("$this->symbol@trade");
 
         $class = $this->getHedgeClass();
-        $hedge = new $class($this->log, $this->api, $symbol, $min, $max, $amount);
+        $hedge = new $class($this->log, $this->api, $this->symbol, $this->min, $this->max);
+
 
         while ($trade = $this->ws->receive()) {
             if ($trade instanceof Trade) {
