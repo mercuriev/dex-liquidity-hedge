@@ -24,6 +24,10 @@ class HedgeBuy extends Hedge
         $new->quoteOrderQty = $amount;
         $new->setPrice($this->prices[$index]);
 
+        if (($index + 1) == $this->count()) {
+            $new->stopPrice += $this->step;
+        }
+
         $this[$index] = $this->post($new);
 
         return $this[$index];
