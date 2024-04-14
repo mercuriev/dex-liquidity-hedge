@@ -2,8 +2,8 @@
 
 namespace App\Command;
 
-use App\Hedge\HedgeSell;
-use Binance\Event\Kline;
+use Amqp\Channel;
+use Amqp\Message;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
@@ -18,13 +18,18 @@ use WebSocket\BadOpcodeException;
 
 class StartCommand extends Command
 {
-    protected string $symbol;
-    protected float $min;
-    protected float $max;
+    public readonly string $symbol;
+    public float $min;
+    public float $max;
+    public float $amount;
+    public bool $crossedLowerLimit;
+    public bool $crossedHigherLimit;
 
     public function __construct(protected readonly Logger            $log,
                                 protected readonly WebsocketsApi     $ws,
-                                protected readonly MarginIsolatedApi $api)
+                                protected readonly MarginIsolatedApi $api,
+                                protected readonly Channel           $mq
+    )
     {
         parent::__construct();
     }
@@ -70,6 +75,9 @@ class StartCommand extends Command
         while ($trade = ($this->ws)(30)) {
             if ($trade instanceof Trade) {
                 ($hedge)($trade);
+
+                // notify user that price is too away of the range
+                $this->notify($trade);
             }
         }
 
@@ -79,5 +87,30 @@ class StartCommand extends Command
         }
 
         return Command::FAILURE;
+    }
+
+    public function notify(Trade $trade) : void
+    {
+        $range = $this->max - $this->min;
+        $excessPercentageLimit = $range * 0.2;
+        $lowerPriceLimit = $this->min - $excessPercentageLimit;
+        $higherPriceLimit = $this->max + $excessPercentageLimit;
+
+        $this->crossedLowerLimit = false;
+        $this->crossedHigherLimit = false;
+
+        if ($trade->price < $lowerPriceLimit) {
+            $this->crossedLowerLimit = true;
+            $msg = "Price has crossed the lower limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
+        } elseif ($trade->price > $higherPriceLimit) {
+            $this->crossedHigherLimit = true;
+            $msg = "Price has crossed the higher limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
+        }
+        if (isset($msg)) {
+            $this->log->info($msg);
+
+            $msg = new Message($msg);
+            $this->mq->publish($msg, 'amq.topic', 'log.notice');
+        }
     }
 }
