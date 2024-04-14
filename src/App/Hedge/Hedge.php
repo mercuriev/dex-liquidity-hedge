@@ -76,9 +76,9 @@ abstract class Hedge extends \SplFixedArray
         // first call fills the prices array and calc step
         $this->prices = $this->getPrices();
         $this->log->info(sprintf(
-            'Range: %.2f - %.2f (%.2f%%) / Step: %.2f (%.2f%%)',
+            'Range: %.2f - %.2f (%.2f%%) / Step: %.2f',
             $this->min, $this->max, (($this->max - $this->min)/$this->max * 100),
-            $this->step, ($this->step/$this->max * 100)
+            $this->step,
         ));
 
         // populate full of orders online
