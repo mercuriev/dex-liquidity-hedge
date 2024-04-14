@@ -72,31 +72,4 @@ class HedgeSell extends Hedge
 
         return null;
     }
-
-    /**
-     * If stop price is rejected post LIMIT order instead.
-     *
-     * @param StopOrder $order
-     * @return StopOrder|LimitOrder
-     * @throws BinanceException
-     * @throws StopPriceTrigger
-     * @throws \Binance\Exception\InsuficcientBalance
-     * @throws \Binance\Exception\InvalidPrices
-     */
-    private function post(StopOrder|LimitOrder $order) : StopOrder|LimitOrder
-    {
-        // TODO autoRepayAtCancel = FALSE (so that we not pay 1hr interest each order)
-        try {
-            $order = $this->api->post($order);
-        }
-        catch (StopPriceTrigger) { // current price is lower
-            $limit = new LimitOrder();
-            $limit->symbol = $this->symbol;
-            $limit->side = 'SELL';
-            $limit->price = $order->price;
-            $limit->quantity = $order->quantity;
-            $order = $this->api->post($limit);
-        }
-        return $order;
-    }
 }

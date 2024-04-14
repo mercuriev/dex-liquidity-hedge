@@ -6,6 +6,7 @@ use Binance\Entity\ExchangeInfo;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
+use Binance\Exception\StopPriceTrigger;
 use Binance\MarginIsolatedApi;
 use Binance\Order\AbstractOrder;
 use Binance\Order\LimitOrder;
@@ -154,6 +155,34 @@ abstract class Hedge extends \SplFixedArray
         if ($this->account->quoteAsset->borrowed > 0) {
             $this->api->repay($this->account->quoteAsset->asset, $this->account->quoteAsset->borrowed);
         }
+    }
+
+
+    /**
+     * If stop price is rejected post LIMIT order instead.
+     *
+     * @param StopOrder $order
+     * @return StopOrder|LimitOrder
+     * @throws BinanceException
+     * @throws StopPriceTrigger
+     * @throws \Binance\Exception\InsuficcientBalance
+     * @throws \Binance\Exception\InvalidPrices
+     */
+    protected function post(StopOrder|LimitOrder $order) : StopOrder|LimitOrder
+    {
+        // TODO autoRepayAtCancel = FALSE (so that we not pay 1hr interest each order)
+        try {
+            $order = $this->api->post($order);
+        }
+        catch (StopPriceTrigger) { // current price is lower
+            $limit = new LimitOrder();
+            $limit->symbol = $this->symbol;
+            $limit->side = 'SELL';
+            $limit->price = $order->price;
+            $limit->quantity = $order->quantity;
+            $order = $this->api->post($limit);
+        }
+        return $order;
     }
 
     protected function log(int $index) : void
