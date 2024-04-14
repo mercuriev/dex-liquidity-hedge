@@ -69,7 +69,7 @@ class HedgeSell extends Hedge
         $down = $index;
         while ($this->offsetExists(++$down)) {
             $next = $this[$down];
-            if ($next->isFilled()) {
+            if ('BUY' == $next->side && $next->isFilled()) {
                 $this->new($down);
                 $this->log($down);
             }
