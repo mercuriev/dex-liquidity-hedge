@@ -33,6 +33,11 @@ class HedgeSell extends Hedge
         $new->quantity = $amount;
         $new->setPrice($this->prices[$index]);
 
+        // special case to avoid too quick entering to hedge
+        if (0 == $index) {
+            $new->stopPrice -= $this->step;
+        }
+
         return $this[$index] = $this->post($new);
     }
 
