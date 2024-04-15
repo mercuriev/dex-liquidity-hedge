@@ -179,7 +179,7 @@ abstract class Hedge extends \SplFixedArray
         catch (StopPriceTrigger) { // current price is lower
             $limit = new LimitOrder();
             $limit->symbol = $this->symbol;
-            $limit->side = 'SELL';
+            $limit->side = $order->side;
             $limit->price = $order->price;
             $limit->quantity = $order->quantity;
             $order = $this->api->post($limit);
