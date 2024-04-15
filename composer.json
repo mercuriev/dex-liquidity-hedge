@@ -2,6 +2,7 @@
   "minimum-stability": "dev",
   "require": {
     "php": ">=8.2",
+    "ext-pcntl": "*",
     "web3promax/binance": "dev-master",
     "symfony/console": "^v7.0.4",
     "laminas/laminas-servicemanager": "^3.21",
