@@ -213,10 +213,10 @@ abstract class Hedge extends \SplFixedArray
     protected function getPrices() : array
     {
         if (!$this->prices) {
-
-            // TODO use precision from exchangeInfo so that crypto-crypto pairs works
             $parts = count($this) - 1;
-            $this->step = round(($this->max - $this->min) / $parts, 2);
+            $tick = $this->info->getFilter($this->symbol, 'PRICE_FILTER')['tickSize'];
+            $precision = strlen($tick) - strlen(ltrim($tick, '0.')) - 1;
+            $this->step = round(($this->max - $this->min) / $parts, $precision);
             for ($i = 0; $i < $parts; $i++) {
                 $this->prices[] = $this->max - ($this->step * $i);
             }
