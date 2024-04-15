@@ -224,7 +224,7 @@ abstract class Hedge extends \SplFixedArray
                 $sliceMin = $this->min + $i * $this->step;
                 $sliceMax = $sliceMin + $this->step;
 
-                $this->prices[] = ($sliceMin + $sliceMax) / 2;
+                $this->prices[] = round(($sliceMin + $sliceMax) / 2, $precision);
             }
             // highest price is always index 0
             rsort($this->prices);
