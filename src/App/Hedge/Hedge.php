@@ -88,6 +88,8 @@ abstract class Hedge extends \SplFixedArray
                 $this->log($i);
             }
         }
+
+        // TODO output total fiat amount for the all orders
     }
 
     /**
@@ -213,14 +215,17 @@ abstract class Hedge extends \SplFixedArray
     protected function getPrices() : array
     {
         if (!$this->prices) {
-            $parts = count($this) - 1;
             $tick = $this->info->getFilter($this->symbol, 'PRICE_FILTER')['tickSize'];
             $precision = strlen($tick) - strlen(ltrim($tick, '0.')) - 1;
-            $this->step = round(($this->max - $this->min) / $parts, $precision);
-            for ($i = 0; $i < $parts; $i++) {
-                $this->prices[] = $this->max - ($this->step * $i);
+            $numSlices = count($this);
+            $this->step = round(($this->max - $this->min) / $numSlices, $precision);
+
+            for ($i = 0; $i < $numSlices; $i++) {
+                $sliceMin = $this->min + $i * $this->step;
+                $sliceMax = $sliceMin + $this->step;
+
+                $this->prices[] = ($sliceMin + $sliceMax) / 2;
             }
-            $this->prices[] = $this->min;
         }
         return $this->prices;
     }
