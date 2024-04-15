@@ -41,7 +41,7 @@ class HedgeBuy extends Hedge
                 $flip = new StopOrder();
                 $flip->symbol = $this->symbol;
                 $flip->side = 'SELL';
-                $flip->quoteOrderQty = $prev->quoteOrderQty;
+                $flip->quantity = $prev->quantity;
                 $flip->price = $prev->price;
                 if ($flip instanceof StopOrder) {
                     $flip->stopPrice = $flip->price;
