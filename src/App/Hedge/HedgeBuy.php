@@ -15,14 +15,13 @@ class HedgeBuy extends Hedge
 
     protected function new(int $index): ?AbstractOrder
     {
-        $amount = truncate($this->account->quoteAsset->free, $this->precision);
-        $amount = truncate($amount / (count($this)), $this->precision);
+        $amount = $this->account->quoteAsset->free / (count($this));
 
         $new = new StopOrder();
         $new->symbol = $this->symbol;
         $new->side = 'BUY';
-        $new->quoteOrderQty = $amount;
         $new->setPrice($this->prices[$index]);
+        $new->quantity = truncate($amount / $new->price, $this->precision);
 
         if (($index + 1) == $this->count()) {
             $new->stopPrice += $this->step;
