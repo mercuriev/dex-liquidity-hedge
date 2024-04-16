@@ -59,6 +59,7 @@ class StartCommand extends Command
         $this->min    = $input->getArgument('MIN');
         $this->max    = $input->getArgument('MAX');
 
+        restart:
         // subscribe before Hedge so that we always catch Trades for our orders
         $this->ws->subscribe("$this->symbol@trade");
 
@@ -66,10 +67,15 @@ class StartCommand extends Command
         $hedge = new $class($this->log, $this->api, $this->symbol, $this->min, $this->max);
 
 
-        while ($trade = $this->ws->receive()) {
+        while ($trade = ($this->ws)(30)) {
             if ($trade instanceof Trade) {
                 ($hedge)($trade);
             }
+        }
+
+        if (null === $trade) {
+            $this->log->err('No trade received.');
+            goto restart; // avoid recursion for the long-running script
         }
 
         return Command::FAILURE;
