@@ -83,13 +83,14 @@ abstract class Hedge extends \SplFixedArray
         ));
 
         // populate full of orders online
+        $totalQuote = 0;
         for ($i = 0; $i < $size; $i++) {
             if ($this->new($i)) {
                 $this->log($i);
+                $totalQuote += round($this[$i]->quantity * $this[$i]->price, 2);
             }
         }
-
-        // TODO output total fiat amount for the all orders
+        $this->log->info("Total quote value: $totalQuote");
     }
 
     /**
