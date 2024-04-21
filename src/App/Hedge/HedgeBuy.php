@@ -23,10 +23,6 @@ class HedgeBuy extends Hedge
         $new->setPrice($this->prices[$index]);
         $new->quantity = truncate($amount / $new->price, $this->precision);
 
-        if (($index + 1) == $this->count()) {
-            $new->stopPrice += $this->step;
-        }
-
         $this[$index] = $this->post($new);
 
         return $this[$index];
