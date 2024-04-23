@@ -30,25 +30,30 @@ class HedgeBuy extends Hedge
 
     protected function filled(int $index): ?AbstractOrder
     {
-        foreach ($this as $i => $order) {
-            if ($i == $index) continue; // avoid quick buy/sell
-            if ('BUY' == $order->side && $order->isFilled()) {
+        $up = $index;
+        while($this->offsetExists(--$up)) {
+            $prev = $this[$up];
+            if ($prev->isFilled()) {
                 $flip = new StopOrder();
                 $flip->symbol = $this->symbol;
                 $flip->side = 'SELL';
-                $flip->quantity = $order->quantity;
-                $flip->price = $order->price;
+                $flip->quantity = $prev->quantity;
+                $flip->price = $prev->price;
                 if ($flip instanceof StopOrder) {
                     $flip->stopPrice = $flip->price;
                 }
 
-                $this[$i] = $this->post($flip);
-                $this->log($i);
+                $this[$up] = $this->post($flip);
+                $this->log($up);
             }
+        }
 
-            if ('SELL' == $order->side && $order->isFilled()) {
-                $this->new($i);
-                $this->log($i);
+        $down = $index;
+        while ($this->offsetExists(++$down)) {
+            $next = $this[$down];
+            if ('SELL' == $next->side && $next->isFilled()) {
+                $this->new($down);
+                $this->log($down);
             }
         }
         return null;
