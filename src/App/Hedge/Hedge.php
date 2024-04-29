@@ -120,7 +120,7 @@ abstract class Hedge extends \SplFixedArray
      */
     protected function borrow(): void
     {
-        if ($this->account['marginLevel'] < 999) {
+        if ($this->account->marginLevel < 999) {
             $this->log->info('Already borrowed. Skipped.');
             return;
         }
