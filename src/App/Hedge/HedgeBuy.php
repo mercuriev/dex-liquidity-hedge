@@ -33,7 +33,7 @@ class HedgeBuy extends Hedge
         $up = $index;
         while($this->offsetExists(--$up)) {
             $prev = $this[$up];
-            if ($prev->isFilled()) {
+            if ('BUY' == $prev->side && $prev->isFilled()) {
                 $flip = new StopOrder();
                 $flip->symbol = $this->symbol;
                 $flip->side = 'SELL';
