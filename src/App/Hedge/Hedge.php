@@ -120,13 +120,15 @@ abstract class Hedge extends \SplFixedArray
      */
     protected function borrow(): void
     {
+        if ($this->account['marginLevel'] < 999) {
+            $this->log->info('Already borrowed. Skipped.');
+            return;
+        }
+
         $asset = $this->getBorrowAsset();
 
         try {
             $max = $this->api->maxBorrowable($asset);
-            if (0 == $max) { // FIXME here is assumed that already borrowed the same asset. Work out cases when opposite asset loan limits total borrowable.
-                return;
-            }
         }
         catch (BinanceException $e) {
             if (-3045 == $e->getCode()) { // "The system does not have enough asset now."
