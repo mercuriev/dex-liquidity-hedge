@@ -63,9 +63,13 @@ abstract class Hedge extends \SplFixedArray
         //
         $api->symbol = $this->symbol;
 
-        // TODO borrow exactly as much is not enough to have $amount
         $this->fetchAccount();
-        $this->borrow();
+        if ($this->account->marginLevel < 999) {
+            $this->borrow();
+        }
+        else {
+            $this->log->info('Already borrowed. Skipped.');
+        }
 
         $size = $this->callApiForMaxOrders();
         parent::__construct($size);
@@ -120,11 +124,6 @@ abstract class Hedge extends \SplFixedArray
      */
     protected function borrow(): void
     {
-        if ($this->account->marginLevel < 999) {
-            $this->log->info('Already borrowed. Skipped.');
-            return;
-        }
-
         $asset = $this->getBorrowAsset();
 
         try {
