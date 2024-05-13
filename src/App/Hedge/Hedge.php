@@ -68,7 +68,7 @@ abstract class Hedge extends \SplFixedArray
             $this->borrow();
         }
         else {
-            $this->log->info('Already borrowed. Skipped.');
+            $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
         }
 
         $size = $this->callApiForMaxOrders();
