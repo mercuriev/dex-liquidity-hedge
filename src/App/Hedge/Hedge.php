@@ -64,7 +64,7 @@ abstract class Hedge extends \SplFixedArray
         $api->symbol = $this->symbol;
 
         $this->fetchAccount();
-        if ($this->account->marginLevel < 999) {
+        if ($this->account->marginLevel == 999) {
             $this->borrow();
         }
         else {
