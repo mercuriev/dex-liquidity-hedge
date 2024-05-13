@@ -55,7 +55,7 @@ class StartCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->symbol = $input->getArgument('SYMBOL');
+        $this->symbol = strtoupper($input->getArgument('SYMBOL'));
         $this->min    = $input->getArgument('MIN');
         $this->max    = $input->getArgument('MAX');
 
