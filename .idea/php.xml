@@ -12,10 +12,24 @@
   </component>
   <component name="PhpIncludePathManager">
     <include_path>
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-servicemanager" />
+      <path value="$PROJECT_DIR$/vendor/symfony/console" />
+      <path value="$PROJECT_DIR$/vendor/textalk/websocket" />
+      <path value="$PROJECT_DIR$/vendor/web3promax/binance" />
+      <path value="$PROJECT_DIR$/vendor/psr/container" />
+      <path value="$PROJECT_DIR$/vendor/psr/http-factory" />
+      <path value="$PROJECT_DIR$/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/vendor/psr/log" />
       <path value="$PROJECT_DIR$/vendor/brick/varexporter" />
       <path value="$PROJECT_DIR$/vendor/nikic/php-parser" />
+      <path value="$PROJECT_DIR$/vendor/phrity/net-uri" />
+      <path value="$PROJECT_DIR$/vendor/phrity/util-errorhandler" />
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-http" />
       <path value="$PROJECT_DIR$/vendor/laminas/laminas-stdlib" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-servicemanager" />
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-uri" />
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-loader" />
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-validator" />
+      <path value="$PROJECT_DIR$/vendor/laminas/laminas-escaper" />
       <path value="$PROJECT_DIR$/vendor/laminas/laminas-config-aggregator" />
       <path value="$PROJECT_DIR$/vendor/myclabs/deep-copy" />
       <path value="$PROJECT_DIR$/vendor/phar-io/manifest" />
@@ -26,7 +40,7 @@
       <path value="$PROJECT_DIR$/vendor/phpunit/php-invoker" />
       <path value="$PROJECT_DIR$/vendor/phpunit/php-code-coverage" />
       <path value="$PROJECT_DIR$/vendor/phpunit/phpunit" />
-      <path value="$PROJECT_DIR$/vendor/symfony/console" />
+      <path value="$PROJECT_DIR$/vendor/symfony/deprecation-contracts" />
       <path value="$PROJECT_DIR$/vendor/symfony/string" />
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-ctype" />
       <path value="$PROJECT_DIR$/vendor/symfony/service-contracts" />
@@ -51,24 +65,7 @@
       <path value="$PROJECT_DIR$/vendor/sebastian/code-unit-reverse-lookup" />
       <path value="$PROJECT_DIR$/vendor/webimpress/safe-writer" />
       <path value="$PROJECT_DIR$/vendor/composer" />
-      <path value="$PROJECT_DIR$/vendor/psr/container" />
-      <path value="$PROJECT_DIR$/vendor/psr/log" />
-      <path value="$PROJECT_DIR$/vendor/phrity/net-uri" />
-      <path value="$PROJECT_DIR$/vendor/phrity/util-errorhandler" />
-      <path value="$PROJECT_DIR$/vendor/psr/http-factory" />
-      <path value="$PROJECT_DIR$/vendor/psr/http-message" />
-      <path value="$PROJECT_DIR$/vendor/textalk/websocket" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-http" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-uri" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-loader" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-validator" />
-      <path value="$PROJECT_DIR$/vendor/laminas/laminas-escaper" />
       <path value="$PROJECT_DIR$/vendor/laminas/laminas-log" />
-      <path value="$PROJECT_DIR$/vendor/web3promax/binance" />
-      <path value="$PROJECT_DIR$/vendor/symfony/deprecation-contracts" />
-      <path value="$PROJECT_DIR$/vendor/react/promise" />
-      <path value="$PROJECT_DIR$/vendor/react/event-loop" />
-      <path value="$PROJECT_DIR$/vendor/bunny/bunny" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
