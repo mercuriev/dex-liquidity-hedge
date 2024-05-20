@@ -58,13 +58,6 @@ class HedgeSell extends Hedge
             }
         }
 
-        // highest order
-        if ($index == 0 && 'BUY' == $this[$index]->side) {
-            $flip = $this->flip($this[$index]);
-            $this[$index] = $this->post($flip);
-            $this->log($index);
-        }
-
         $down = $index;
         while ($this->offsetExists(++$down)) {
             $next = $this[$down];
@@ -72,13 +65,6 @@ class HedgeSell extends Hedge
                 $this->new($down);
                 $this->log($down);
             }
-        }
-
-        // lowest order
-        if ($index == count($this) - 1 && 'SELL' == $this[$index]->side) {
-            $flip = $this->flip($this[$index]);
-            $this[$index] = $this->post($flip);
-            $this->log($index);
         }
 
         return null;
