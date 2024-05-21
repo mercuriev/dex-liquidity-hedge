@@ -59,8 +59,9 @@ class HedgeSell extends Hedge
         }
 
         // highest order
-        if ($index == 0 && 'BUY' == $this[$index]->side) {
+        if ($index == 0 && 'SELL' == $this[$index]->side) {
             $flip = $this->flip($this[$index]);
+            $flip->stopPrice += $this->step;
             $this[$index] = $this->post($flip);
             $this->log($index);
         }
@@ -75,8 +76,9 @@ class HedgeSell extends Hedge
         }
 
         // lowest order
-        if ($index == count($this) - 1 && 'SELL' == $this[$index]->side) {
+        if ($index == count($this) - 1 && 'BUY' == $this[$index]->side) {
             $flip = $this->flip($this[$index]);
+            $flip->stopPrice -= $this->step;
             $this[$index] = $this->post($flip);
             $this->log($index);
         }
