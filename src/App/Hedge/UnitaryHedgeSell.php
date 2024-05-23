@@ -5,7 +5,7 @@ namespace App\Hedge;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\MarginIsolatedApi;
-use Binance\Order\LimitMakerOrder;
+use App\Binance\LimitMakerOrder;
 use Laminas\Log\Logger;
 use function Binance\truncate;
 
