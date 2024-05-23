@@ -48,6 +48,8 @@ class HedgeSell extends Hedge
         // FIXME try to prevent taker trades by setting stopPrice 1/10 step lower for SELL
         // TODO watch for the price level and post LIMIT_MAKER FOK until filled
 
+        $this->fetchAccount();
+
         $up = $index;
         while($this->offsetExists(--$up)) {
             $prev = $this[$up];
