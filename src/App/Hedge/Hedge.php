@@ -37,6 +37,9 @@ abstract class Hedge extends \SplFixedArray
     abstract protected function new(int $index) : ?AbstractOrder;
     abstract protected function filled(int $index) : ?AbstractOrder;
 
+    protected function above(float $price) {}
+    protected function below(float $price) {}
+
     /**
      * @throws ExceedBorrowable
      * @throws BinanceException
@@ -117,6 +120,13 @@ abstract class Hedge extends \SplFixedArray
                     if ($mirror) $this->log($i);
                 }
             }
+        }
+
+        if ($trade->price > $this->max) {
+            $this->above($trade->price);
+        }
+        elseif ($trade->price < $this->min) {
+            $this->below($trade->price);
         }
     }
 
