@@ -6,10 +6,7 @@ use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 // call destructors on Ctrl+C
 pcntl_async_signals(true);
-$callShutdown = function () {
-    echo "Shutting down...\n";
-    die;
-};
+$callShutdown = function () { exit(0); };
 pcntl_signal(SIGINT, $callShutdown);
 pcntl_signal(SIGTERM, $callShutdown);
 
