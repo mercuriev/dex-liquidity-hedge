@@ -69,6 +69,12 @@ abstract class Hedge extends \SplFixedArray
         $api->symbol = $this->symbol;
 
         $this->fetchAccount();
+        $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
+            $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
+            $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
+        );
+        $this->log->info($msg);
+
         if ($this->account->marginLevel == 999) {
             $this->borrow();
         }
@@ -208,6 +214,9 @@ abstract class Hedge extends \SplFixedArray
         );
         $msg .= (isset($order->stopPrice) ? sprintf(' @ %.2f', $order->stopPrice) : '');
 
+        $msg .= ' ('.round($order->quantity * $order->price, 2).')';
+        $msg .= sprintf(' / %.2f <-> %.5f', $this->account->quoteAsset->totalAsset, $this->account->baseAsset->totalAsset);
+
         $this->log->info($msg);
     }
 
@@ -237,11 +246,6 @@ abstract class Hedge extends \SplFixedArray
     protected function fetchAccount(): void
     {
         $this->account = $this->api->getAccount($this->symbol);
-        $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
-            $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
-            $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
-        );
-        $this->log->info($msg);
     }
 
     private function callApiForMaxOrders() : int
