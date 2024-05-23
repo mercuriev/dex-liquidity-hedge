@@ -59,12 +59,12 @@ class HedgeSell extends Hedge
         }
 
         // highest order
-        if ($index == 0 && 'SELL' == $this[$index]->side) {
+/*        if ($index == 0 && 'SELL' == $this[$index]->side) {
             $flip = $this->flip($this[$index]);
             $flip->stopPrice += $this->step;
             $this[$index] = $this->post($flip);
             $this->log($index);
-        }
+        }*/
 
         $down = $index;
         while ($this->offsetExists(++$down)) {
@@ -84,6 +84,29 @@ class HedgeSell extends Hedge
         }
 
         return null;
+    }
+
+    protected function above(float $price)
+    {
+        if ($price > $this->max + $this->step) {
+            if ('SELL' == $this[0]->side && $this[0]->isFilled()) {
+                $flip = $this->flip($this[0]);
+                $this->post($flip);
+                $this->log(0);
+            }
+        }
+    }
+
+    protected function below(float $price)
+    {
+        if ($price < $this->min - $this->step) {
+            $last = $this[count($this) - 1];
+            if ('SELL' == $last->side && $last->isFilled()) {
+                $flip = $this->flip($this[0]);
+                $this->post($flip);
+                $this->log(count($this) - 1);
+            }
+        }
     }
 
     private function flip(AbstractOrder $order) : AbstractOrder
