@@ -12,7 +12,7 @@ use Binance\Exception\ExceedBorrowable;
 use Binance\MarginIsolatedApi;
 use Binance\MarketDataApi;
 use Binance\Order\AbstractOrder;
-use Binance\Order\LimitMakerOrder;
+use App\Binance\LimitMakerOrder;
 use Laminas\Log\Logger;
 
 abstract class UnitaryHedge
@@ -122,24 +122,8 @@ abstract class UnitaryHedge
 
     protected function log(AbstractOrder $order) : void
     {
-        if ($order->isFilled()) {
-            $msg = '▶';
-            $status = 'SELL' == $order->side ? 'SOLD' : 'BGHT';
-        }
-        else {
-            $msg = '▷';
-            $status = $order->side;
-        }
-        $msg .= sprintf(
-            '%-4s %.2f',
-            $status,
-            $order->price
-        );
-        $msg .= (isset($order->stopPrice) ? sprintf(' @ %.2f', $order->stopPrice) : '');
-
-        $msg .= ' ('.round($order->quantity * $order->price, 2).')';
+        $msg = (string) $order;
         $msg .= sprintf(' / %.2f <-> %.5f', $this->account->quoteAsset->totalAsset, $this->account->baseAsset->totalAsset);
-
         $this->log->info($msg);
     }
 
@@ -148,6 +132,7 @@ abstract class UnitaryHedge
         ($this->log)->info('Shutting down...');
         if (isset($this->order) && $this->order->isNew()) {
             $this->api->cancel($this->order);
+            ($this->log)->info("Canceled $this->order");
         }
         // TODO repay if no balance changes???? or keep for the next to avoid an hour interest fee
     }
