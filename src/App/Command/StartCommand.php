@@ -63,9 +63,9 @@ class StartCommand extends Command
         // subscribe before Hedge so that we always catch Trades for our orders
         $this->ws->subscribe("$this->symbol@trade");
 
+        $this->api->symbol = $this->symbol;
         $class = $this->getHedgeClass();
         $hedge = new $class($this->log, $this->api, $this->symbol, $this->min, $this->max);
-
 
         while ($trade = ($this->ws)(30)) {
             if ($trade instanceof Trade) {

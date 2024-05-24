@@ -41,8 +41,6 @@ abstract class UnitaryHedge
         protected float             $high
     )
     {
-        $this->api->symbol = $this->symbol;
-
         $this->median = round(($low + $high) / 2);
         $this->log->info(sprintf(
             '%s Range: %.2f - %.2f (%.2f%%) / Median: %.2f',
