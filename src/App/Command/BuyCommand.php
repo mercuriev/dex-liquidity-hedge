@@ -1,7 +1,7 @@
 <?php
 namespace App\Command;
 
-use App\Hedge\HedgeBuy;
+use App\Hedge\UnitaryHedgeBuy;
 
 /**
  * Send AMQP message to start hedging.
@@ -15,6 +15,6 @@ class BuyCommand extends StartCommand
 
     public function getHedgeClass() : string
     {
-        return HedgeBuy::class;
+        return UnitaryHedgeBuy::class;
     }
 }
