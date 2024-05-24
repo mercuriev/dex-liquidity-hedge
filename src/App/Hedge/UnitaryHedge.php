@@ -73,7 +73,7 @@ abstract class UnitaryHedge
         $klines = (new MarketDataApi([]))->getKlines([
             'symbol' => $symbol,
             'interval' => '1m',
-            'startTime' => (time() - 360) * 1000, // last 6 minutes enough for EMA(5)
+            'startTime' => (time() - 660) * 1000, // last 10 minutes
             'endTime' => time() * 1000
         ]);
         if ($klines) {
