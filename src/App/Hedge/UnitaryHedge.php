@@ -28,6 +28,7 @@ abstract class UnitaryHedge
     protected Minutes $min;
 
     abstract protected function getBorrowAsset() : string;
+    abstract protected function getTotalQuoteValue() : float;
     protected function filled() {}
     protected function above(float $price) {}
     protected function below(float $price) {}
@@ -50,13 +51,9 @@ abstract class UnitaryHedge
             $this->median,
         ));
 
-        // TODO borrow on the first trade only
         $this->account = $this->api->getAccount($this->symbol);
-        if ($this->account->marginLevel == 999) {
-            $this->borrow();
-        } else {
-            $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
-        }
+        $this->log->info(sprintf('Total quote value with borrowable: %.2f', $this->getTotalQuoteValue()));
+
         $msg = sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
             $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
             $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
@@ -95,10 +92,9 @@ abstract class UnitaryHedge
      * @throws ExceedBorrowable
      * @throws BinanceException
      */
-    protected function borrow(): void
+    protected function borrow(): float
     {
         $asset = $this->getBorrowAsset();
-
         try {
             $max = $this->api->maxBorrowable($asset);
         }
@@ -118,6 +114,7 @@ abstract class UnitaryHedge
             $this->log->err("Unable to borrow $max $asset. Exceed limit.");
             throw $e;
         }
+        return $max;
     }
 
     protected function log(AbstractOrder $order) : void

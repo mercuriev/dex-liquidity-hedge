@@ -62,6 +62,14 @@ class UnitaryHedgeSell extends UnitaryHedge
         // TODO post sell if price is lower than median (or min? or?), and we didn't sell yet
         if ($trade->price < $this->median && $secema->now() < $this->median) {
             if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled())) {
+                // borrow at first trade and log once
+                if ($this->account->marginLevel == 999) {
+                    $borrowed = $this->borrow();
+                    $this->log->info(sprintf('Borrowed %.5f %s', $borrowed, $this->getBorrowAsset()));
+                } else if (!isset($this->lastPost)) {
+                    $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
+                }
+
                 $order = new LimitMakerOrder();
                 $order->symbol = $this->symbol;
                 $order->side = 'SELL';
@@ -104,6 +112,20 @@ class UnitaryHedgeSell extends UnitaryHedge
     protected function getBorrowAsset(): string
     {
         return $this->account->baseAsset->asset;
+    }
+
+    // TODO for hedge buy calc with borrowable quote asset
+    protected function getTotalQuoteValue(): float
+    {
+        $median = round(($this->low + $this->high) / 2);
+        $value = $this->account->quoteAsset->free;
+        $value += $this->account->baseAsset->free * $median;
+        if ($this->account->marginLevel == 999) {
+            $asset = $this->getBorrowAsset();
+            $borrowable = $this->api->maxBorrowable($asset);
+            $value += $borrowable * $median;
+        }
+        return $value;
     }
 
     protected function filled() : void
