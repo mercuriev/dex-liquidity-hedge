@@ -90,7 +90,6 @@ class UnitaryHedgeSell extends UnitaryHedge
         return $this->account->baseAsset->asset;
     }
 
-
     protected function getTotalQuoteValue(): float
     {
         $median = round(($this->low + $this->high) / 2);

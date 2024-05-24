@@ -1,7 +1,6 @@
 <?php
 namespace App\Command;
 
-use App\Hedge\HedgeSell;
 use App\Hedge\UnitaryHedgeSell;
 
 /**
@@ -16,7 +15,6 @@ class SellCommand extends StartCommand
 
     public function getHedgeClass() : string
     {
-        #return HedgeSell::class;
         return UnitaryHedgeSell::class;
     }
 }
