@@ -82,8 +82,8 @@ class UnitaryHedgeSell extends UnitaryHedge
         }
 
         // TODO post buy if we sold and price is higher than median (or max? or?)
-        if ($trade->price > $this->median && $minema->now() > $this->median) {
-            if (isset($this->order) && $this->order->isSell() && $this->order->isFilled()) {
+        if (isset($this->order) && $this->order->isSell() && $this->order->isFilled()) {
+            if ($trade->price > $this->median && $minema->now() > $this->median && $minema->isAscending(5)) {
                 $flip = $this->flip($this->order);
                 if ($this->post($flip)) {
                     $this->log($this->order);
