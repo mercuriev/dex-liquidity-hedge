@@ -1,27 +1,24 @@
 <?php
-
 namespace App\Hedge;
 
-use Binance\Event\Trade;
-use Binance\Exception\BinanceException;
-use Binance\MarginIsolatedApi;
 use App\Binance\LimitMakerOrder;
+use Binance\Event\Trade;
+use Binance\MarginIsolatedApi;
 use Laminas\Log\Logger;
 use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
 {
-    private bool $ready = false;
+    private bool $ready = false; // when chart has enough data
 
     public function __construct(
         protected Logger            $log,
         protected MarginIsolatedApi $api,
-        protected string            $symbol,
         protected float             $low,
-        protected float $high
+        protected float             $high
     )
     {
-        parent::__construct($log, $api, $symbol, $low, $high);
+        parent::__construct($log, $api, $low, $high);
 
         if (0 == truncate($this->account->baseAsset->free, $this->precision)) {
             throw new \RuntimeException(sprintf('No %s to SELL.', $this->account->baseAsset->asset));
@@ -32,24 +29,16 @@ class UnitaryHedgeSell extends UnitaryHedge
     {
         parent::__invoke($trade);
 
+        // collect enough data to build technical analysis
         try {
-            $secema = $this->sec->ema(10);
-            $minema  = $this->min->ema(5);
+            $secEMA  = $this->sec->ema(10);
+            $minEMA  = $this->min->ema(5);
             if (!$this->ready) {
                 $this->log->info('Collected enough graph info to build EMA.');
                 $this->ready = true;
             }
         } catch (\UnderflowException) {
             return;
-        }
-
-        // check if trade triggered our order
-        if (isset($this->order) && !$this->order->isFilled()) {
-            $this->order->match($trade);
-            if ($this->order->isFilled()) {
-                $this->log($this->order);
-                $this->filled(); // hook
-            }
         }
 
         // rate limit post orders once per second
@@ -59,19 +48,17 @@ class UnitaryHedgeSell extends UnitaryHedge
         // TODO same as above for buy orders, emergency/fallback mode
         // TODO account fees and shift sell/buy orders up or down to pay for the fee
 
-        // TODO post sell if price is lower than median (or min? or?), and we didn't sell yet
-        if ($trade->price < $this->median && $secema->now() < $this->median) {
-            if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled())) {
+        // SELL order: if there are no orders or just bought
+        if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled()))
+        {
+            if ($trade->price < $this->median && $secEMA->now() < $this->median)
+            {
                 // borrow at first trade and log once
-                if ($this->account->marginLevel == 999) {
-                    $borrowed = $this->borrow();
-                    $this->log->info(sprintf('Borrowed %.5f %s', $borrowed, $this->getBorrowAsset()));
-                } else if (!isset($this->lastPost)) {
-                    $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
-                }
+                $this->borrow();
 
+                // API call post order
                 $order = new LimitMakerOrder();
-                $order->symbol = $this->symbol;
+                $order->symbol = $this->api->symbol;
                 $order->side = 'SELL';
                 $order->quantity = truncate($this->account->baseAsset->free, $this->precision);
                 $order->price = $this->median; // TODO median plus fee diff
@@ -81,9 +68,15 @@ class UnitaryHedgeSell extends UnitaryHedge
             }
         }
 
-        // TODO post buy if we sold and price is higher than median (or max? or?)
-        if (isset($this->order) && $this->order->isSell() && $this->order->isFilled()) {
-            if ($trade->price > $this->median && $minema->now() > $this->median && $minema->isAscending(5)) {
+        // BUY order: if we sold and there is trend reverse
+        if (isset($this->order) && $this->order->isSell() && $this->order->isFilled())
+        {
+            // price is rising and above median
+            if ($trade->price > $this->median
+                && $secEMA->now() > $this->median
+                && $minEMA->now() > $this->median
+                && $minEMA->isAscending(5))
+            {
                 $flip = $this->flip($this->order);
                 if ($this->post($flip)) {
                     $this->log($this->order);
@@ -92,29 +85,12 @@ class UnitaryHedgeSell extends UnitaryHedge
         }
     }
 
-    /** @noinspection PhpFieldAssignmentTypeMismatchInspection */
-    protected function post(LimitMakerOrder $order) : ?LimitMakerOrder
-    {
-        try {
-            return $this->order = $this->api->post($order);
-        }
-        catch (BinanceException $e) {
-            // Try on next call if: Order would immediately match and take.
-            if ($e->getCode() != -2010)
-                throw $e;
-        }
-        finally {
-            $this->lastPost = time();
-        }
-        return null;
-    }
-
     protected function getBorrowAsset(): string
     {
         return $this->account->baseAsset->asset;
     }
 
-    // TODO for hedge buy calc with borrowable quote asset
+
     protected function getTotalQuoteValue(): float
     {
         $median = round(($this->low + $this->high) / 2);
@@ -126,19 +102,5 @@ class UnitaryHedgeSell extends UnitaryHedge
             $value += $borrowable * $median;
         }
         return $value;
-    }
-
-    protected function filled() : void
-    {
-    }
-
-    private function flip(LimitMakerOrder $order) : LimitMakerOrder
-    {
-        $flip = new LimitMakerOrder();
-        $flip->symbol = $this->symbol;
-        $flip->side = $order->side == 'BUY' ? 'SELL' : 'BUY';
-        $flip->price = $order->price;
-        $flip->quantity = $order->quantity;
-        return $flip;
     }
 }
