@@ -65,7 +65,7 @@ class StartCommand extends Command
 
         $this->api->symbol = $this->symbol;
         $class = $this->getHedgeClass();
-        $hedge = new $class($this->log, $this->api, $this->symbol, $this->min, $this->max);
+        $hedge = new $class($this->log, $this->api, $this->min, $this->max);
 
         while ($trade = ($this->ws)(30)) {
             if ($trade instanceof Trade) {
