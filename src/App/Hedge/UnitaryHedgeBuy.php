@@ -11,20 +11,6 @@ class UnitaryHedgeBuy extends UnitaryHedge
 {
     private bool $ready = false; // when chart has enough data
 
-    public function __construct(
-        protected Logger            $log,
-        protected MarginIsolatedApi $api,
-        protected float             $low,
-        protected float             $high
-    )
-    {
-        parent::__construct($log, $api, $low, $high);
-
-        if (0 == truncate($this->account->quoteAsset->free, 2)) {
-            throw new \RuntimeException(sprintf('No %s to BUY.', $this->account->quoteAsset->asset));
-        }
-    }
-
     public function __invoke(Trade $trade) : void
     {
         parent::__invoke($trade);
