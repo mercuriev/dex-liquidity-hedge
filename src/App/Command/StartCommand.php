@@ -3,32 +3,22 @@
 namespace App\Command;
 
 use Amqp\Channel;
-use Amqp\Message;
+use App\Hedge\UnitaryHedgeBuy;
+use App\Hedge\UnitaryHedgeSell;
 use Binance\Event\Trade;
-use Binance\Exception\BinanceException;
-use Binance\Exception\ExceedBorrowable;
 use Binance\MarginIsolatedApi;
-use Binance\WebsocketsApi;
+use Bunny\Message;
 use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use WebSocket\BadOpcodeException;
+use function Binance\json_encode_pretty;
 
 class StartCommand extends Command
 {
-    public readonly string $symbol;
-    public float $min;
-    public float $max;
-    public float $amount;
-    public bool $crossedLowerLimit;
-    public bool $crossedHigherLimit;
-
     public function __construct(protected readonly Logger            $log,
-                                protected readonly WebsocketsApi     $ws,
                                 protected readonly MarginIsolatedApi $api,
-                                protected readonly Channel           $mq
+                                protected readonly Channel           $ch
     )
     {
         parent::__construct();
@@ -39,78 +29,59 @@ class StartCommand extends Command
         return 'start';
     }
 
-    public function getHedgeClass() : string
-    {
-        throw new \LogicException('Must override');
-    }
-
     protected function configure(): void
     {
-        $this->setDescription('')
-            ->addArgument('SYMBOL', InputArgument::REQUIRED)
-            ->addArgument('MIN', InputArgument::REQUIRED)
-            ->addArgument('MAX', InputArgument::REQUIRED)
-        ;
     }
 
     /**
-     * @throws BadOpcodeException
-     * @throws ExceedBorrowable
-     * @throws BinanceException
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->symbol = strtoupper($input->getArgument('SYMBOL'));
-        $this->min    = $input->getArgument('MIN');
-        $this->max    = $input->getArgument('MAX');
+        $q = 'control';
+        $this->ch->exchangeDeclare('hedge', type: 'topic');
+        $this->ch->queueDeclare($q);
+        $this->ch->bind('control', 'hedge', [], '*');
+        $this->ch->bunny->consume($this, $q);
+        $this->ch->bunny->qos(0, 1);
 
-        restart:
-        // subscribe before Hedge so that we always catch Trades for our orders
-        $this->ws->subscribe("$this->symbol@trade");
+        $this->log->info("Waiting for commands...");
+        $this->ch->run();
 
-        $this->api->symbol = $this->symbol;
-        $class = $this->getHedgeClass();
-        $hedge = new $class($this->log, $this->api, $this->min, $this->max);
-
-        while ($trade = ($this->ws)(30)) {
-            if ($trade instanceof Trade) {
-                ($hedge)($trade);
-
-                // notify user that price is too away of the range
-                $this->notify($trade);
-            }
-        }
-
-        if (null === $trade) {
-            $this->log->err('No trade received.');
-            goto restart; // avoid recursion for the long-running script
-        }
-
-        return Command::FAILURE;
+        return Command::FAILURE; // restart by supervisor
     }
 
-    public function notify(Trade $trade) : void
+    public function __invoke(\Bunny\Message $msg, \Bunny\Channel $ch): bool
     {
-        $range = $this->max - $this->min;
-        $excessPercentageLimit = $range * 0.2;
-        $lowerPriceLimit = $this->min - $excessPercentageLimit;
-        $higherPriceLimit = $this->max + $excessPercentageLimit;
+        $this->log->debug('Got message ' . $msg->routingKey . ': ' . $msg->content);
 
-        $this->crossedLowerLimit = false;
-        $this->crossedHigherLimit = false;
+        list($symbol, $low, $high) = explode(' ', $msg->content);
+        $symbol = strtolower($symbol);
+        $this->api->symbol = strtoupper($symbol);
 
-        if ($trade->price < $lowerPriceLimit) {
-            $this->crossedLowerLimit = true;
-            $msg = "Price has crossed the lower limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
-        } elseif ($trade->price > $higherPriceLimit) {
-            $this->crossedHigherLimit = true;
-            $msg = "Price has crossed the higher limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
+        switch ($msg->routingKey) {
+            case 'sell':
+                $command = new UnitaryHedgeSell($this->log, $this->api, $low, $high);
+                $q = $this->ch->queueDeclare('hedge.sell');
+                break;
+
+            case 'buy':
+                $command = new UnitaryHedgeBuy($this->log, $this->api, $low, $high);
+                $q = $this->ch->queueDeclare('hedge.buy');
+                break;
+
+            default: return $ch->ack($msg);
         }
-        if (isset($msg)) {
-            $this->log->info($msg);
 
-            $msg = new Message($msg);
-            $this->mq->publish($msg, 'amq.topic', 'log.notice');
-        }
+        // start processing trades
+        $ch->queueBind($q, 'binance', routingKey: "trade.$symbol");
+        $handler = function(Message $msg, \Bunny\Channel $ch) use ($command) {
+            $trade = unserialize($msg->content);
+            if (!$trade instanceof Trade) throw new \InvalidArgumentException(gettype($trade));
+            $command($trade, $ch);
+            return $ch->ack($msg);
+        };
+        $ch->consume($handler, $q);
+
+        return $ch->ack($msg);
     }
 }
