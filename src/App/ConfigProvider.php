@@ -2,6 +2,7 @@
 namespace App;
 
 use App\Command\BuyCommand;
+use App\Command\DbCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
 use App\Command\WatchCommand;
@@ -15,13 +16,25 @@ class ConfigProvider
         return [
             'commands' => [
                 'watch'     => WatchCommand::class,
+                'db'        => DbCommand::class,
                 'start'     => StartCommand::class,
                 'sell'      => SellCommand::class,
                 'buy'       => BuyCommand::class
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
-            ]
+            ],
+            'db' => [
+                'driver' => 'Pdo_Mysql',
+                'hostname' => 'mysql',
+                'database' => 'hedgehog',
+                'username' => 'root',
+                'password' => '',
+                'driver_options' => array(
+                    \PDO::MYSQL_ATTR_INIT_COMMAND => 'SET time_zone = "+0:0"',
+                    \PDO::ATTR_PERSISTENT => true
+                )
+            ],
         ];
     }
 }
