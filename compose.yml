@@ -1,0 +1,64 @@
+volumes:
+  rabbitmq:
+  mysql:
+
+services:
+  # The APP's business logic
+  hedge:
+    depends_on:
+      - rabbitmq
+    image: hedge
+    build: .
+    command: ["start"]
+    volumes:
+      - .:/srv
+
+  # subscribe to websockets and publish trades to AMQP
+  watch:
+    image: hedge
+    build: .
+    command: ["watch", "ETHFDUSD", "BTCFDUSD"]
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    volumes:
+      - .:/srv
+
+  # record trades to database for backtesting
+  db:
+    depends_on:
+      - rabbitmq
+      - mysql
+    image: hedge
+    build: .
+    command: ["db"]
+    restart: on-failure
+    volumes:
+      - .:/srv
+
+  # AMQP message queue to enable multitasking in PHP
+  rabbitmq:
+    hostname: rabbitmq # must be defined for data durability so that db file has always same name
+    image: rabbitmq:3-management
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+
+  # database and GUI for it
+  mysql:
+    image: mysql:8
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - 127.0.0.1:3306:3306
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./schema.sql:/docker-entrypoint-initdb.d/hedge.sql:ro
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
+  pma:
+    image: phpmyadmin
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - UPLOAD_LIMIT=16G
+      - PMA_PMADB=phpmyadmin
