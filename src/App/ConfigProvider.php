@@ -5,7 +5,7 @@ use App\Command\BuyCommand;
 use App\Command\DbCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
-use App\Command\StopCommand;
+use App\Command\CancelCommand;
 use App\Command\WatchCommand;
 use App\Telegram\Action\PoolAction;
 use App\Telegram\Handler\MessageHandler;
@@ -23,7 +23,7 @@ class ConfigProvider
                 'start'             => StartCommand::class,
                 'sell'              => SellCommand::class,
                 'buy'               => BuyCommand::class,
-                'stop'              => StopCommand::class,
+                'cancel'            => CancelCommand::class,
                 'telegram:start'    => \App\Telegram\StartCommand::class
             ],
             'rabbitmq' => [

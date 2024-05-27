@@ -11,11 +11,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * Send AMQP message to start hedging.
  */
-class StopCommand extends Command
+class CancelCommand extends Command
 {
     public function getName() : string
     {
-        return 'stop';
+        return 'cancel';
     }
 
     public function __construct(protected readonly Logger            $log,
