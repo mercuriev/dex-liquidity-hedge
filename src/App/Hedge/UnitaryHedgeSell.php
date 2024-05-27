@@ -4,6 +4,8 @@ namespace App\Hedge;
 use App\Binance\LimitMakerOrder;
 use Binance\Event\Trade;
 use Binance\MarginIsolatedApi;
+use Bunny\Channel;
+use Bunny\Message;
 use Laminas\Log\Logger;
 use function Binance\truncate;
 
@@ -11,9 +13,9 @@ class UnitaryHedgeSell extends UnitaryHedge
 {
     private bool $ready = false; // when chart has enough data
 
-    public function __invoke(Trade $trade) : void
+    public function __invoke(Trade $trade, Channel $ch) : void
     {
-        parent::__invoke($trade);
+        parent::__invoke($trade, $ch);
 
         // collect enough data to build technical analysis
         try {
