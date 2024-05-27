@@ -6,7 +6,7 @@ use App\Hedge\UnitaryHedgeSell;
 /**
  * Send AMQP message to start hedging.
  */
-class SellCommand extends StartCommand
+class SellCommand extends HedgeCommand
 {
     public function getName() : string
     {
