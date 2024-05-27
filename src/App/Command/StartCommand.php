@@ -12,10 +12,12 @@ use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use function Binance\json_encode_pretty;
 
 class StartCommand extends Command
 {
+    /** @var string Active running hedge class */
+    private string $tag = '';
+
     public function __construct(protected readonly Logger            $log,
                                 protected readonly MarginIsolatedApi $api,
                                 protected readonly Channel           $ch
@@ -54,9 +56,11 @@ class StartCommand extends Command
     {
         $this->log->debug('Got message ' . $msg->routingKey . ': ' . $msg->content);
 
-        list($symbol, $low, $high) = explode(' ', $msg->content);
-        $symbol = strtolower($symbol);
-        $this->api->symbol = strtoupper($symbol);
+        if ($msg->content) {
+            list($symbol, $low, $high) = explode(' ', $msg->content);
+            $symbol = strtolower($symbol);
+            $this->api->symbol = strtoupper($symbol);
+        }
 
         switch ($msg->routingKey) {
             case 'sell':
@@ -69,6 +73,12 @@ class StartCommand extends Command
                 $q = $this->ch->queueDeclare('hedge.buy');
                 break;
 
+            case 'cancel':
+                $ch->cancel($this->tag);
+                $ch->queueDelete('hedge.sell');
+                $ch->queueDelete('hedge.buy');
+                // proceed to ack
+
             default: return $ch->ack($msg);
         }
 
@@ -80,7 +90,7 @@ class StartCommand extends Command
             $command($trade, $ch);
             return $ch->ack($msg);
         };
-        $ch->consume($handler, $q);
+        $this->tag = $ch->consume($handler, $q);
 
         return $ch->ack($msg);
     }
