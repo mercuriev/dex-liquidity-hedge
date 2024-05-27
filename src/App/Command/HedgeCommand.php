@@ -14,7 +14,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use WebSocket\BadOpcodeException;
 
 abstract class HedgeCommand extends Command
 {
@@ -22,19 +21,13 @@ abstract class HedgeCommand extends Command
     public float $min;
     public float $max;
     public float $amount;
-    public bool $crossedLowerLimit;
-    public bool $crossedHigherLimit;
 
     public function __construct(protected readonly Logger            $log,
-                                protected readonly WebsocketsApi     $ws,
-                                protected readonly MarginIsolatedApi $api,
-                                protected readonly Channel           $mq
+                                protected readonly Channel           $ch
     )
     {
         parent::__construct();
     }
-
-    abstract public function getHedgeClass() : string;
 
     protected function configure(): void
     {
@@ -45,61 +38,15 @@ abstract class HedgeCommand extends Command
         ;
     }
 
-    /**
-     * @throws BadOpcodeException
-     * @throws ExceedBorrowable
-     * @throws BinanceException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->symbol = strtoupper($input->getArgument('SYMBOL'));
         $this->min    = $input->getArgument('MIN');
         $this->max    = $input->getArgument('MAX');
 
-        restart:
-        // subscribe before Hedge so that we always catch Trades for our orders
-        $this->ws->subscribe("$this->symbol@trade");
+        $this->ch->bunny->publish(implode(' ', [$this->symbol, $this->min, $this->max]), 'hedge', $this->getName());
+        $this->log->info('Message sent successfully.');
 
-        $this->api->symbol = $this->symbol;
-        $class = $this->getHedgeClass();
-        $hedge = new $class($this->log, $this->api, $this->min, $this->max);
-
-        while ($trade = ($this->ws)(30)) {
-            if ($trade instanceof Trade) {
-                ($hedge)($trade);
-            }
-        }
-
-        if (null === $trade) {
-            $this->log->err('No trade received.');
-            goto restart; // avoid recursion for the long-running script
-        }
-
-        return Command::FAILURE;
-    }
-
-    public function notify(Trade $trade) : void
-    {
-        $range = $this->max - $this->min;
-        $excessPercentageLimit = $range * 0.2;
-        $lowerPriceLimit = $this->min - $excessPercentageLimit;
-        $higherPriceLimit = $this->max + $excessPercentageLimit;
-
-        $this->crossedLowerLimit = false;
-        $this->crossedHigherLimit = false;
-
-        if ($trade->price < $lowerPriceLimit) {
-            $this->crossedLowerLimit = true;
-            $msg = "Price has crossed the lower limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
-        } elseif ($trade->price > $higherPriceLimit) {
-            $this->crossedHigherLimit = true;
-            $msg = "Price has crossed the higher limit of the range by more than 20%. Trade Price: $trade->price, Range: $this->min-$this->max";
-        }
-        if (isset($msg)) {
-            $this->log->info($msg);
-
-            $msg = new Message($msg);
-            $this->mq->publish($msg, 'amq.topic', 'log.notice');
-        }
+        return Command::SUCCESS;
     }
 }

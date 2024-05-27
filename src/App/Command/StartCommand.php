@@ -35,8 +35,6 @@ class StartCommand extends Command
     {
     }
 
-    /**
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $q = 'control';
