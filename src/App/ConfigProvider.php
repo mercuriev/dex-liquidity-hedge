@@ -4,6 +4,7 @@ namespace App;
 use App\Command\BuyCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
+use App\Command\WatchCommand;
 
 class ConfigProvider
 {
@@ -13,9 +14,13 @@ class ConfigProvider
 
         return [
             'commands' => [
+                'watch'     => WatchCommand::class,
                 'start'     => StartCommand::class,
                 'sell'      => SellCommand::class,
                 'buy'       => BuyCommand::class
+            ],
+            'rabbitmq' => [
+                'host' => 'rabbitmq',
             ]
         ];
     }
