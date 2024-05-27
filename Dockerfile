@@ -14,4 +14,4 @@ RUN chmod +x /usr/local/bin/composer
 RUN ln -s /srv/php.ini  /usr/local/etc/php/conf.d/app.ini
 
 WORKDIR "/srv"
-ENTRYPOINT ["php", "hedge.php"]
+ENTRYPOINT ["php", "cli.php"]
