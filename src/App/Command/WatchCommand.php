@@ -67,7 +67,7 @@ class WatchCommand extends Command
 
             // publish
             $symbol =& $payload['s'];
-            $this->ch->publish(new Message(serialize($trade)), self::EXCHANGE, "trade.$symbol");
+            $this->ch->publish(new Message(serialize($trade)), self::EXCHANGE, strtolower("trade.$symbol"));
         }
         return 100; // Disconnected. Restart by supervisor
     }
