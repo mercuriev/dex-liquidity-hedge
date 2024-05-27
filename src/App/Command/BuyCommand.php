@@ -12,9 +12,4 @@ class BuyCommand extends HedgeCommand
     {
         return 'buy';
     }
-
-    public function getHedgeClass() : string
-    {
-        return UnitaryHedgeBuy::class;
-    }
 }
