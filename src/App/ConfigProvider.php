@@ -5,6 +5,7 @@ use App\Command\BuyCommand;
 use App\Command\DbCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
+use App\Command\StopCommand;
 use App\Command\WatchCommand;
 
 class ConfigProvider
@@ -19,7 +20,8 @@ class ConfigProvider
                 'db'        => DbCommand::class,
                 'start'     => StartCommand::class,
                 'sell'      => SellCommand::class,
-                'buy'       => BuyCommand::class
+                'buy'       => BuyCommand::class,
+                'stop'      => StopCommand::class,
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
