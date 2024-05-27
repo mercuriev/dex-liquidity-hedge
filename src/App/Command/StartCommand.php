@@ -64,11 +64,13 @@ class StartCommand extends Command
             case 'sell':
                 $command = new UnitaryHedgeSell($this->log, $this->api, $low, $high);
                 $q = $this->ch->queueDeclare('hedge.sell');
+                $ch->queuePurge('hedge.sell'); // if existed
                 break;
 
             case 'buy':
                 $command = new UnitaryHedgeBuy($this->log, $this->api, $low, $high);
                 $q = $this->ch->queueDeclare('hedge.buy');
+                $ch->queuePurge('hedge.buy'); // if existed
                 break;
 
             case 'cancel':
