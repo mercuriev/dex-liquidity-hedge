@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Telegram;
+
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Log\Logger;
+use Longman\TelegramBot\Entities\Update;
+use Longman\TelegramBot\Exception\TelegramException;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
+
+class StartCommand extends Command
+{
+    public function getName(): ?string
+    {
+        return 'telegram:start';
+    }
+
+    public function __construct(protected Adapter $db, protected Logger $log, protected Telegram $tg)
+    {
+        parent::__construct();
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output) : int
+    {
+        $this->log->info('Stared telegram bot.');
+
+        $allowed_updates = [
+            Update::TYPE_MESSAGE,
+            Update::TYPE_CHANNEL_POST,
+        ];
+
+        try {
+            do {
+                $res = $this->tg->handleGetUpdates(['allowed_updates' => $allowed_updates]);
+            }
+            while(!sleep(1));
+        }
+        catch (TelegramException $e) {
+            throw $e;
+        }
+
+        return 0;
+    }
+}
