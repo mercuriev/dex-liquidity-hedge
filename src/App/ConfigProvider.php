@@ -7,6 +7,8 @@ use App\Command\SellCommand;
 use App\Command\StartCommand;
 use App\Command\StopCommand;
 use App\Command\WatchCommand;
+use App\Telegram\Action\PoolAction;
+use App\Telegram\Handler\MessageHandler;
 
 class ConfigProvider
 {
@@ -16,12 +18,13 @@ class ConfigProvider
 
         return [
             'commands' => [
-                'watch'     => WatchCommand::class,
-                'db'        => DbCommand::class,
-                'start'     => StartCommand::class,
-                'sell'      => SellCommand::class,
-                'buy'       => BuyCommand::class,
-                'stop'      => StopCommand::class,
+                'watch'             => WatchCommand::class,
+                'db'                => DbCommand::class,
+                'start'             => StartCommand::class,
+                'sell'              => SellCommand::class,
+                'buy'               => BuyCommand::class,
+                'stop'              => StopCommand::class,
+                'telegram:start'    => \App\Telegram\StartCommand::class
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
@@ -37,6 +40,13 @@ class ConfigProvider
                     \PDO::ATTR_PERSISTENT => true
                 )
             ],
+            'telegram' => [
+                'db' => ['database' => 'telegram'],
+                'handlers'  => [
+                    MessageHandler::class,
+                    PoolAction::class
+                ]
+            ]
         ];
     }
 }
