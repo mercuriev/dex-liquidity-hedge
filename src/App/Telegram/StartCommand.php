@@ -5,7 +5,7 @@ namespace App\Telegram;
 use Laminas\Db\Adapter\Adapter;
 use Laminas\Log\Logger;
 use Longman\TelegramBot\Entities\Update;
-use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\TelegramLog;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -25,6 +25,8 @@ class StartCommand extends Command
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
         $this->log->info('Started telegram bot.');
+
+        TelegramLog::initialize($this->log, $this->log);
 
         do {
             try {
