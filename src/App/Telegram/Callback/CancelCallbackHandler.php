@@ -19,7 +19,7 @@ class CancelCallbackHandler extends AbstractCallbackHandler
         $convo = new Conversation($user->getId(), $chat);
         $convo->cancel();
 
-        Request::sendMessage(['chat_id' => $chat, 'text' => 'Done!']);
+        Request::sendMessage(['chat_id' => $chat, 'text' => 'Canceled.']);
 
         return $query->answer([]);
     }
