@@ -24,22 +24,18 @@ class StartCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $this->log->info('Stared telegram bot.');
+        $this->log->info('Started telegram bot.');
 
-        $allowed_updates = [
-            Update::TYPE_MESSAGE,
-            Update::TYPE_CHANNEL_POST,
-        ];
-
-        try {
-            do {
-                $res = $this->tg->handleGetUpdates(['allowed_updates' => $allowed_updates]);
+        do {
+            try {
+                $res = $this->tg->handleGetUpdates(['allowed_updates' => [Update::TYPE_MESSAGE]]);
             }
-            while(!sleep(1));
+            catch (\Throwable $e) {
+                $this->log->err($e);
+                // keep running
+            }
         }
-        catch (TelegramException $e) {
-            throw $e;
-        }
+        while(!sleep(1));
 
         return 0;
     }
