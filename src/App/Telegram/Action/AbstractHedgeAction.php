@@ -24,11 +24,13 @@ abstract class AbstractHedgeAction extends AbstractHandler
 
         // Recover conversation from db or start new
         $conversation = new HedgeConversation($user_id, $chat_id, $this->getName());
+        $conversation->onComplete([$this, 'publish']);
         return $conversation->run($text);
     }
 
-    protected function publish(array $notes): bool|int
+    public function publish(array $notes): string
     {
-        return $this->ch->bunny->publish(implode(' ', $notes), 'hedge', $this->getName());
+        $this->ch->bunny->publish(implode(' ', $notes), 'hedge', $this->getName());
+        return 'Published!';
     }
 }
