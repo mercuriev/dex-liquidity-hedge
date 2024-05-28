@@ -50,7 +50,11 @@ class Telegram extends \Longman\TelegramBot\Telegram
 
     public function updateFilter(Update $u) : bool
     {
-        $uid = $u->getMessage()->getFrom()->getId();
+        $type = $u->getUpdateType();
+        $uid = match ($type) {
+            Update::TYPE_CALLBACK_QUERY => $u->getCallbackQuery()->getFrom()->getId(),
+            Update::TYPE_MESSAGE        => $u->getMessage()->getFrom()->getId()
+        };
         return in_array($uid, $this->admins_list);
     }
 

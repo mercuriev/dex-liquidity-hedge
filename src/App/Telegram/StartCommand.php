@@ -2,8 +2,11 @@
 
 namespace App\Telegram;
 
+use App\Telegram\Callback\CancelCallbackHandler;
+use App\Telegram\Handler\CallbackHandler;
 use Laminas\Db\Adapter\Adapter;
 use Laminas\Log\Logger;
+use Longman\TelegramBot\Commands\SystemCommands\CallbackqueryCommand;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\TelegramLog;
 use Symfony\Component\Console\Command\Command;
@@ -28,9 +31,12 @@ class StartCommand extends Command
 
         TelegramLog::initialize($this->log, $this->log);
 
+        CallbackqueryCommand::addCallbackHandler(new CancelCallbackHandler());
+
+        $allowed = [Update::TYPE_MESSAGE, Update::TYPE_CALLBACK_QUERY];
         do {
             try {
-                $res = $this->tg->handleGetUpdates(['allowed_updates' => [Update::TYPE_MESSAGE]]);
+                $res = $this->tg->handleGetUpdates(['allowed_updates' => $allowed]);
             }
             catch (\Throwable $e) {
                 $this->log->err($e);
