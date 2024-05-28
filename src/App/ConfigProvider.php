@@ -7,7 +7,9 @@ use App\Command\SellCommand;
 use App\Command\StartCommand;
 use App\Command\CancelCommand;
 use App\Command\WatchCommand;
+use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\PoolAction;
+use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
 
 class ConfigProvider
@@ -44,7 +46,6 @@ class ConfigProvider
                 'db' => ['database' => 'telegram'],
                 'handlers'  => [
                     MessageHandler::class,
-                    PoolAction::class
                 ]
             ]
         ];
