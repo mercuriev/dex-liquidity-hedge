@@ -13,11 +13,11 @@ abstract class AbstractConversation extends Conversation
 
     abstract public function run(string $text);
 
-    public function ask($question) : ServerResponse
+    public function message($text, array $extra = []) : ServerResponse
     {
-        return Request::sendMessage([
+        return Request::sendMessage(array_merge([
             'chat_id' => $this->chat_id,
-            'text' => $question,
-        ]);
+            'text' => $text,
+        ], $extra));
     }
 }

@@ -9,19 +9,43 @@ use Longman\TelegramBot\Request;
 
 class HedgeConversation extends AbstractConversation
 {
+    private function status() : string
+    {
+        $text = "I will $this->command";
+        if (@$symbol = $this->notes['symbol']) {
+            $text .= " in $symbol";
+        }
+        if (@$low = $this->notes['low']) {
+            $text .= " between low $low";
+        }
+        if (@$high = $this->notes['high']) {
+            $text .= " and high $high.\n";
+            $median = round(($low + $high) / 2, 2);
+            $text .= "Median: $median";
+        }
+        $text .= '.';
+        return $text;
+    }
+
     public function run(string $text) : ServerResponse
     {
-        if (empty($this->notes)) {
-            $this->intro();
-        }
+        $inline = [
+            'reply_markup' => new InlineKeyboard([
+                new InlineKeyboardButton([
+                    'text'          => '<< Cancel',
+                    'callback_data' => 'cancel'
+                ]),
+            ])
+        ];
 
         if (!isset($this->notes['symbol'])) {
             if ($text) {
-                $this->notes['symbol'] = $text;
+                $this->notes['symbol'] = strtoupper($text);
                 $text = '';
                 $this->update();
             } else {
-                return $this->askSymbol();
+                $reply = $this->status() . "\nSymbol?";
+                return $this->message($reply, $inline);
             }
         }
 
@@ -31,7 +55,8 @@ class HedgeConversation extends AbstractConversation
                 $text = '';
                 $this->update();
             } else {
-                return $this->askLow();
+                $reply = $this->status() . "\nLow?";
+                return $this->message($reply, $inline);
             }
         }
 
@@ -41,40 +66,24 @@ class HedgeConversation extends AbstractConversation
                 $text = '';
                 $this->update();
             } else {
-                return $this->askHigh();
+                $reply = $this->status() . "\nHigh?";
+                return $this->message($reply, $inline);
+            }
+        }
+
+        if (!isset($this->notes['confirm'])) {
+            if ($text) {
+                $this->notes['confirm'] = $text;
+                $text = '';
+                $this->update();
+            } else {
+                $reply = $this->status() . "\nConfirm? Any message to proceed.";
+                return $this->message($reply, $inline);
             }
         }
 
         $this->stop();
 
         return Request::sendMessage(['chat_id' => $this->chat_id, 'text' => 'Done']);
-    }
-
-    public function intro() : ServerResponse
-    {
-        $data['chat_id'] = $this->chat_id;
-        $data['text'] = "Alright! I will $this->command. Let me know range.";
-        $data['reply_markup'] = new InlineKeyboard([
-            new InlineKeyboardButton([
-                'text'          => '<< Cancel',
-                'callback_data' => 'cancel'
-            ]),
-        ]);
-        return Request::sendMessage((array) $data);
-    }
-
-    public function askSymbol()
-    {
-        return $this->ask('Symbol?');
-    }
-
-    public function askLow()
-    {
-        return $this->ask('Low?');
-    }
-
-    public function askHigh()
-    {
-        return $this->ask('High?');
     }
 }
