@@ -2,6 +2,7 @@
 
 namespace App\Telegram\Conversation;
 
+use Bunny\Channel;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
@@ -9,6 +10,10 @@ use Longman\TelegramBot\Request;
 
 class HedgeConversation extends AbstractConversation
 {
+    public Channel $channel;
+
+    protected $callbackComplete;
+
     private function status() : string
     {
         $text = "I will $this->command";
@@ -82,8 +87,20 @@ class HedgeConversation extends AbstractConversation
             }
         }
 
+        if ($this->callbackComplete) {
+            $reply = call_user_func($this->callbackComplete, $this->notes);
+        }
+        else $reply = 'No callback!';
+
+        // this clears notes
         $this->stop();
 
-        return Request::sendMessage(['chat_id' => $this->chat_id, 'text' => 'Done']);
+        return Request::sendMessage(['chat_id' => $this->chat_id, 'text' => $reply]);
+    }
+
+    public function onComplete(callable $callback) : self
+    {
+        $this->callbackComplete = $callback;
+        return $this;
     }
 }
