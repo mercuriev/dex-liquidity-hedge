@@ -5,15 +5,10 @@ namespace App\Telegram\Action;
 use App\Telegram\Conversation\HedgeConversation;
 use App\Telegram\Handler\AbstractHandler;
 use Longman\TelegramBot\Conversation;
-use Longman\TelegramBot\Entities\InlineKeyboard;
-use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\ServerResponse;
-use Longman\TelegramBot\Request;
 
 abstract class AbstractHedgeAction extends AbstractHandler
 {
-    protected Conversation $conversation;
-
     /**
      * @inheritDoc
      */
@@ -28,8 +23,8 @@ abstract class AbstractHedgeAction extends AbstractHandler
         $user_id = $user->getId();
 
         // Recover conversation from db or start new
-        $this->conversation = new HedgeConversation($user_id, $chat_id, $this->getName());
-        return $this->conversation->run($text);
+        $conversation = new HedgeConversation($user_id, $chat_id, $this->getName());
+        return $conversation->run($text);
     }
 
     protected function publish(array $notes): bool|int
