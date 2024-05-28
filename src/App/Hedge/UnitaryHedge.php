@@ -156,7 +156,7 @@ abstract class UnitaryHedge
         $flip->symbol = $order->symbol;
         $flip->side = $order->side == 'BUY' ? 'SELL' : 'BUY';
         $flip->quantity = $order->quantity;
-        $flip->price = round($this->median * ($order->side == 'SELL' ? 1 - $this->fee : 1 + $this->fee), 2);
+        $flip->price = round($this->median * ($flip->side == 'BUY' ? 1 - $this->fee : 1 + $this->fee), 2);
         return $flip;
     }
 
