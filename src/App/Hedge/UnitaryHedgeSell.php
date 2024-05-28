@@ -3,8 +3,6 @@ namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
 use Binance\Event\Trade;
-use Binance\MarginIsolatedApi;
-use Laminas\Log\Logger;
 use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
@@ -47,7 +45,7 @@ class UnitaryHedgeSell extends UnitaryHedge
                 $order->symbol = $this->api->symbol;
                 $order->side = 'SELL';
                 $order->quantity = truncate($this->account->baseAsset->free, $this->precision);
-                $order->price = $this->median; // TODO median plus fee diff
+                $order->price = round($this->median * (1 + $this->fee), 2);
                 if ($this->post($order)) {
                     $this->log($this->order);
                 }
