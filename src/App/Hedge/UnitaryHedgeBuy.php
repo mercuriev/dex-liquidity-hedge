@@ -3,8 +3,6 @@ namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
 use Binance\Event\Trade;
-use Binance\MarginIsolatedApi;
-use Laminas\Log\Logger;
 use function Binance\truncate;
 
 class UnitaryHedgeBuy extends UnitaryHedge

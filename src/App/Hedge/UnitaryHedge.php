@@ -21,6 +21,7 @@ abstract class UnitaryHedge
     protected LimitMakerOrder $order;
 
     protected float $median; // order entry / exit price
+    protected float $fee = 0.0001; // median price offset
     protected int $precision; // base asset precision for rounding
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
 
@@ -137,7 +138,6 @@ abstract class UnitaryHedge
         return false;
     }
 
-
     /**
      * Creates a new LimitMakerOrder object by inverting the side of a given order.
      *
@@ -153,8 +153,8 @@ abstract class UnitaryHedge
         $flip = new LimitMakerOrder();
         $flip->symbol = $order->symbol;
         $flip->side = $order->side == 'BUY' ? 'SELL' : 'BUY';
-        $flip->price = $order->price;
         $flip->quantity = $order->quantity;
+        $flip->price = round($this->median * ($order->side == 'BUY' ? 1 - $this->fee : 1 + $this->fee), 2);
         return $flip;
     }
 
