@@ -46,6 +46,8 @@ class ConfigProvider
                 'db' => ['database' => 'telegram'],
                 'handlers'  => [
                     MessageHandler::class,
+                    SellAction::class,
+                    BuyAction::class
                 ]
             ]
         ];
