@@ -95,7 +95,11 @@ class HedgeConversation extends AbstractConversation
         // this clears notes
         $this->stop();
 
-        return Request::sendMessage(['chat_id' => $this->chat_id, 'text' => $reply]);
+        if ($reply) {
+            return Request::sendMessage(['chat_id' => $this->chat_id, 'text' => $reply]);
+        } else {
+            return Request::emptyResponse();
+        }
     }
 
     public function onComplete(callable $callback) : self
