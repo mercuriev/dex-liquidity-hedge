@@ -35,7 +35,7 @@ class StartCommand extends Command
     {
         $this->log->info('Started telegram bot.');
 
-        TelegramLog::initialize($this->log, $this->log);
+        TelegramLog::initialize($this->log);
         CallbackqueryCommand::addCallbackHandler(new CancelCallbackHandler());
 
         $pid = pcntl_fork();
