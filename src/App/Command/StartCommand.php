@@ -59,7 +59,7 @@ class StartCommand extends Command
         $q = 'control';
         $this->ch->exchangeDeclare('hedge', type: 'topic');
         $this->ch->queueDeclare($q);
-        $this->ch->bind('control', 'hedge', [], '*');
+        $this->ch->bind($q, 'hedge', [], '*');
         $this->ch->bunny->consume($this, $q);
         $this->ch->bunny->qos(0, 1);
 

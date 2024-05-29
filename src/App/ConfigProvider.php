@@ -8,6 +8,7 @@ use App\Command\StartCommand;
 use App\Command\CancelCommand;
 use App\Command\WatchCommand;
 use App\Telegram\Action\BuyAction;
+use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\PoolAction;
 use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
@@ -47,7 +48,8 @@ class ConfigProvider
                 'handlers'  => [
                     MessageHandler::class,
                     SellAction::class,
-                    BuyAction::class
+                    BuyAction::class,
+                    CancelAction::class
                 ]
             ]
         ];
