@@ -85,7 +85,12 @@ class StartCommand extends Command
                 $symbol = strtolower($symbol);
                 $this->api->symbol = strtoupper($symbol);
                 $class = $msg->routingKey == 'sell' ? UnitaryHedgeSell::class : UnitaryHedgeBuy::class;
-                $command = new $class($this->log, $this->api, $low, $high);
+                try {
+                    $command = new $class($this->log, $this->api, $low, $high);
+                } catch (\Throwable $e) {
+                    $this->log->err($e->getMessage());
+                    return $ch->ack($msg);
+                }
                 $qName = "hedge.$msg->routingKey";
                 $q = $this->ch->queueDeclare($qName);
                 $ch->queuePurge($qName); // if existed
