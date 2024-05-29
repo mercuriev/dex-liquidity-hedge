@@ -73,32 +73,33 @@ class StartCommand extends Command
     {
         $this->log->debug('Got message ' . $msg->routingKey . ': ' . $msg->content);
 
-        if ($msg->content) {
-            list($symbol, $low, $high) = explode(' ', $msg->content);
-            $symbol = strtolower($symbol);
-            $this->api->symbol = strtoupper($symbol);
-        }
-
         switch ($msg->routingKey) {
             case 'sell':
-                $command = new UnitaryHedgeSell($this->log, $this->api, $low, $high);
-                $q = $this->ch->queueDeclare('hedge.sell');
-                $ch->queuePurge('hedge.sell'); // if existed
-                break;
-
             case 'buy':
-                $command = new UnitaryHedgeBuy($this->log, $this->api, $low, $high);
-                $q = $this->ch->queueDeclare('hedge.buy');
-                $ch->queuePurge('hedge.buy'); // if existed
+                if ($this->tag) {
+                    $this->log->err('Alreagy hedging. Cancel first.');
+                    return $ch->ack($msg);
+                }
+
+                list($symbol, $low, $high) = explode(' ', $msg->content);
+                $symbol = strtolower($symbol);
+                $this->api->symbol = strtoupper($symbol);
+                $class = $msg->routingKey == 'sell' ? UnitaryHedgeSell::class : UnitaryHedgeBuy::class;
+                $command = new $class($this->log, $this->api, $low, $high);
+                $qName = "hedge.$msg->routingKey";
+                $q = $this->ch->queueDeclare($qName);
+                $ch->queuePurge($qName); // if existed
                 break;
 
             case 'cancel':
                 $ch->cancel($this->tag);
+                $this->tag = '';
                 $ch->queueDelete('hedge.sell');
                 $ch->queueDelete('hedge.buy');
-                // proceed to ack
+                return $ch->ack($msg);
 
-            default: return $ch->ack($msg);
+            default:
+                return $ch->ack($msg);
         }
 
         // start processing trades
