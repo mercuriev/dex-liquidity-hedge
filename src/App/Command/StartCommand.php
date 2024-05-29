@@ -49,7 +49,7 @@ class StartCommand extends Command
             }
             protected function doWrite(array $event): void
             {
-                $this->ch->bunny->publish($event['message'], 'log', strtolower($event['priorityNames']));
+                $this->ch->bunny->publish($event['message'], 'log', strtolower($event['priorityName']));
             }
         });
     }
