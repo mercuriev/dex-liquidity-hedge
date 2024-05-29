@@ -63,7 +63,7 @@ class StartCommand extends Command
         $this->ch->bunny->consume($this, $q);
         $this->ch->bunny->qos(0, 1);
 
-        $this->log->info("Waiting for commands...");
+        $this->log->debug("Waiting for commands...");
         $this->ch->run();
 
         return Command::FAILURE; // restart by supervisor

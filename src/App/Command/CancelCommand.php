@@ -28,7 +28,7 @@ class CancelCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->ch->bunny->publish('', 'hedge', $this->getName());
-        $this->log->info('Message sent successfully.');
+        $this->log->debug('Message sent successfully.');
 
         return Command::SUCCESS;
     }

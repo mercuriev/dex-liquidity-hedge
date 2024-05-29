@@ -80,7 +80,7 @@ class DbCommand extends Command
         $this->ch->bunny->consume($this, $q);
         $this->ch->bunny->qos(0, self::BATCH_SIZE);
 
-        $this->log->info("Saving market...");
+        $this->log->debug("Saving market...");
         $this->ch->run();
 
         return 100; // restart by supervisor
