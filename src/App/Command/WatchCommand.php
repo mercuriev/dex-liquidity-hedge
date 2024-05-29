@@ -89,6 +89,6 @@ class WatchCommand extends Command
             throw new \RuntimeException("Failed to subscribe\n" . json_encode($resp));
         }
 
-        $this->log->info('Connected and subscribed to ' . implode(', ', $topics));
+        $this->log->debug('Connected and subscribed to ' . implode(', ', $topics));
     }
 }
