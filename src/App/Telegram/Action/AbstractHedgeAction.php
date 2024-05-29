@@ -31,6 +31,6 @@ abstract class AbstractHedgeAction extends AbstractHandler
     public function publish(array $notes): string
     {
         $this->ch->bunny->publish(implode(' ', $notes), 'hedge', $this->getName());
-        return 'Published!';
+        return '';
     }
 }

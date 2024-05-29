@@ -15,8 +15,7 @@ class CancelAction extends AbstractHandler
      */
     public function execute(): ServerResponse
     {
-        $chat = $this->getMessage()->getChat();
         $this->ch->bunny->publish('', 'hedge', 'cancel');
-        return Request::sendMessage(['chat_id' => $chat->getId(), 'text' => 'Published.']);
+        return Request::emptyResponse();
     }
 }
