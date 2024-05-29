@@ -8,7 +8,10 @@ use App\Hedge\UnitaryHedgeSell;
 use Binance\Event\Trade;
 use Binance\MarginIsolatedApi;
 use Bunny\Message;
+use Laminas\Log\Filter\Priority;
 use Laminas\Log\Logger;
+use Laminas\Log\Writer\AbstractWriter;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -33,6 +36,22 @@ class StartCommand extends Command
 
     protected function configure(): void
     {
+        // send important log entries to telegram
+        $this->log->addWriter(new class($this->ch) extends AbstractWriter
+        {
+            public function __construct(private readonly Channel $ch) {
+                parent::__construct([
+                    'filters' => [
+                        new Priority(Logger::INFO)
+                    ]
+                ]);
+                $ch->exchangeDeclare('log', type: 'topic');
+            }
+            protected function doWrite(array $event): void
+            {
+                $this->ch->bunny->publish($event['message'], 'log', strtolower($event['priorityNames']));
+            }
+        });
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
