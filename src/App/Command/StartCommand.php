@@ -88,7 +88,7 @@ class StartCommand extends Command
                     $command = new $class($this->log, $this->api, $low, $high);
                 } catch (\Throwable $e) {
                     $this->log->err($e->getMessage());
-                    $this->log->debug($e->getTraceAsString());
+                    $this->log->debug($e);
                     return $ch->ack($msg);
                 }
                 $qName = "hedge.$msg->routingKey";
@@ -116,7 +116,7 @@ class StartCommand extends Command
                 $command($trade, $ch);
             } catch (\Throwable $e) {
                 $this->log->err($e->getMessage()); // this goes to telegram
-                $this->log->debug($e->getTraceAsString());
+                $this->log->debug($e);
             }
             return $ch->ack($msg);
         };
