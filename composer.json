@@ -4,7 +4,7 @@
     "php": ">=8.2",
     "ext-pcntl": "*",
     "ext-pdo": "*",
-    "web3promax/binance": "dev-master",
+    "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
     "bunny/bunny": "dev-master",
     "symfony/console": "^v7.0.4",
@@ -19,19 +19,19 @@
   "repositories": [
     {
       "type": "git",
-      "url": "https://github.com/web3promax/binance.git"
+      "url": "https://github.com/mercuriev/binance.git"
     },
     {
       "type": "git",
-      "url": "https://github.com/web3promax/laminas-log.git"
+      "url": "https://github.com/mercuriev/laminas-log.git"
     },
     {
       "type": "git",
-      "url": "https://github.com/web3promax/php-rabbitmq.git"
+      "url": "https://github.com/mercuriev/php-rabbitmq.git"
     },
     {
       "type": "git",
-      "url": "https://github.com/web3promax/laminas-db.git"
+      "url": "https://github.com/mercuriev/laminas-db.git"
     }
   ],
   "autoload": {
