@@ -9,6 +9,7 @@ use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 $aggregator = new ConfigAggregator([
     \Laminas\Log\ConfigProvider::class,
     \App\ConfigProvider::class,
+    \Laminas\Db\ConfigProvider::class,
 
     new ArrayProvider([
         'dependencies' => [

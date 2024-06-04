@@ -9,9 +9,9 @@ class UnitaryHedgeBuy extends UnitaryHedge
 {
     private bool $ready = false; // when chart has enough data
 
-    public function __invoke(Trade $trade) : void
+    public function __invoke(Trade $trade, \Bunny\Channel $ch) : void
     {
-        parent::__invoke($trade);
+        parent::__invoke($trade, $ch);
 
         // collect enough data to build technical analysis
         try {
