@@ -31,7 +31,6 @@ class UnitaryHedgeSell extends UnitaryHedge
 
         // TODO if minute EMA(10) is below median and sell is not filled enter emergency mode and update order to EMA(10) price every minute. capped by min/max?
         // TODO same as above for buy orders, emergency/fallback mode
-        // TODO account fees and shift sell/buy orders up or down to pay for the fee
 
         // SELL order: if there are no orders or just bought
         if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled()))
