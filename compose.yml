@@ -13,6 +13,15 @@ services:
     volumes:
       - .:/srv
 
+  telegram:
+    depends_on:
+      - rabbitmq
+    image: hedge
+    build: .
+    command: ["telegram:start"]
+    volumes:
+      - .:/srv
+
   # subscribe to websockets and publish trades to AMQP
   watch:
     image: hedge
