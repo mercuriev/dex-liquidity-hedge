@@ -52,9 +52,9 @@ class UnitaryHedgeSell extends UnitaryHedge
             // price is rising and above median
             if ($trade->price > $this->median
                 && $secEMA->now() > $this->median
-                && $secEMA->isAscending(10)
+                && $secEMA->isAscending(10, 0.8)
                 && $minEMA->now() > $this->median
-                && $minEMA->isAscending(5)
+                && $minEMA->isAscending(5, 0.6)
             )
             {
                 $flip = $this->flip($this->order);
