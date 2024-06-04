@@ -89,6 +89,7 @@ class StartCommand extends Command
                     $command = new $class($this->log, $this->api, $low, $high);
                 } catch (\Throwable $e) {
                     $this->log->err($e->getMessage());
+                    $this->log->debug($e->getTraceAsString());
                     return $ch->ack($msg);
                 }
                 $qName = "hedge.$msg->routingKey";
