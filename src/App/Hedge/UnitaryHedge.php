@@ -72,7 +72,8 @@ abstract class UnitaryHedge
             $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
             $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
         ));
-        $this->log->info(sprintf('Total quote with borrowable: %.2f', $this->getTotalQuoteValue()));
+        $this->log->info(sprintf('Total quote with borrowable: %.2f', $quote = $this->getTotalQuoteValue()));
+        if ($quote < 10) throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
 
         // precision of base asset's quantity
         $info = $this->api->exchangeInfo();
