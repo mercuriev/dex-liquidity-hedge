@@ -28,7 +28,6 @@ class UnitaryHedgeSell extends UnitaryHedge
                 && $secEMA->now() < $this->median
                 && $secEMA->isDescending(10, 0.8)
                 && $minEMA->now() < $this->median
-                && $minEMA->isDescending(5, 0.6)
             )
             {
                 // borrow at first trade and log once
@@ -54,7 +53,6 @@ class UnitaryHedgeSell extends UnitaryHedge
                 && $secEMA->now() > $this->median
                 && $secEMA->isAscending(10, 0.8)
                 && $minEMA->now() > $this->median
-                && $minEMA->isAscending(5, 0.6)
             )
             {
                 $flip = $this->flip($this->order);
