@@ -26,6 +26,7 @@ abstract class UnitaryHedge
     protected float $fee = 0.0001; // median price offset
     protected int $precision; // base asset precision for rounding
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
+    protected int $inrange;
 
     /**
      * Base asset to sell or quote asset to buy.
@@ -109,6 +110,31 @@ abstract class UnitaryHedge
                 $this->log($this->order);
             }
         }
+
+        try {
+            $ema = $this->sec->ema(30);
+            $price = $ema->now();
+            // track out of range movements
+            $range = function(float $price) {
+                return match(true) {
+                    $price > $this->high => 1,
+                    $price < $this->low => -1,
+                    default => 0,
+                };
+            };
+            if (!isset($this->inrange)) $this->inrange = $range($price);
+            $now = $range($price);
+            if ($this->inrange != $now) {
+                $msg = match($now) {
+                    1   => 'Price is above range',
+                    0   => 'Price is in range',
+                    -1  => 'Price is below range'
+                };
+                $this->log->info($msg);
+                $this->inrange = $now;
+            }
+        }
+        catch (\UnderflowException) {}
     }
 
     /**
