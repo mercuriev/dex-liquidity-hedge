@@ -8,8 +8,6 @@ use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
 {
-    private bool $ready = false; // when chart has enough data
-
     public function __invoke(Trade $trade, Channel $ch) : void
     {
         parent::__invoke($trade, $ch);
@@ -28,9 +26,9 @@ class UnitaryHedgeSell extends UnitaryHedge
         {
             if ($trade->price < $this->median
                 && $secEMA->now() < $this->median
-                && $secEMA->isDescending(10)
+                && $secEMA->isDescending(10, 0.8)
                 && $minEMA->now() < $this->median
-                && $minEMA->isDescending(5)
+                && $minEMA->isDescending(5, 0.6)
             )
             {
                 // borrow at first trade and log once
