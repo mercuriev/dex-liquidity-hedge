@@ -4,7 +4,6 @@ namespace App\Hedge;
 use App\Binance\LimitMakerOrder;
 use App\Binance\MarginIsolatedApi;
 use Binance\Account\MarginIsolatedAccount;
-use Binance\Chart\Indicator\EMA;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
@@ -21,8 +20,6 @@ abstract class UnitaryHedge
     protected float $fee = 0; // median price offset
     protected int $precision; // base asset precision for rounding
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
-    protected int $inrange;
-    protected int $asc;
 
     /**
      * Base asset to sell or quote asset to buy.
@@ -93,54 +90,6 @@ abstract class UnitaryHedge
                 $this->log($this->order);
             }
         }
-
-        try {
-            $ema = $this->api->s->ema(30);
-            $price = $ema->now();
-            // track out of range movements
-            $range = function(float $price) {
-                return match(true) {
-                    $price > $this->high => 1,
-                    $price < $this->low => -1,
-                    default => 0,
-                };
-            };
-            if (!isset($this->inrange)) $this->inrange = $range($price);
-            $now = $range($price);
-            if ($this->inrange != $now) {
-                $msg = match($now) {
-                    1   => 'Price is above range',
-                    0   => 'Price is in range',
-                    -1  => 'Price is below range'
-                };
-                $this->log->info($msg);
-                $this->inrange = $now;
-            }
-        }
-        catch (\UnderflowException) {}
-
-        try {
-            $ema = $this->api->m->ema(5);
-            $range = function(EMA $ema) {
-                return match(true) {
-                    $ema->isAscending(5) => 1,
-                    $ema->isDescending(5) => -1,
-                    default => 0,
-                };
-            };
-            if (!isset($this->asc)) $this->asc = $range($ema);
-            $now = $range($ema);
-            if ($this->asc != $now) {
-                $msg = match($now) {
-                    1   => 'Ascending',
-                    0   => 'Descending',
-                    -1  => 'Flat'
-                };
-                $this->log->info($msg);
-                $this->asc = $now;
-            }
-        }
-        catch (\UnderflowException) {}
     }
 
     /**
