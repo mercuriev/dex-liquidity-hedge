@@ -12,6 +12,9 @@ use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\PoolAction;
 use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
+use Laminas\Log\Logger;
+use Laminas\Log\LoggerServiceFactory;
+use Psr\Container\ContainerInterface;
 
 class ConfigProvider
 {
@@ -20,6 +23,25 @@ class ConfigProvider
         ini_set('bcmath.scale', 8);
 
         return [
+            'dependencies' => [
+                'factories' => [
+                    // overwrite solely to disable Logger destructor that is called before Hedge destructor
+                    // original Logger removes writers hence Hedge desctructor can't write to log anymore
+                    // and the Logger destructor is called first because it is instantiated first
+                    Logger::class => new class extends LoggerServiceFactory {
+                        public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null) : Logger
+                        {
+                            // Configure the logger
+                            $config    = $container->get('config');
+                            $logConfig = $config['log'] ?? [];
+                            $this->processConfig($logConfig, $container);
+                            return new class($logConfig) extends Logger {
+                                public function __destruct() {}
+                            };
+                        }
+                    }
+                ]
+            ],
             'commands' => [
                 'watch'             => WatchCommand::class,
                 'db'                => DbCommand::class,
