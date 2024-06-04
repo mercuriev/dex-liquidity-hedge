@@ -36,7 +36,12 @@ class UnitaryHedgeSell extends UnitaryHedge
         // SELL order: if there are no orders or just bought
         if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled()))
         {
-            if ($trade->price < $this->median && $secEMA->now() < $this->median)
+            if ($trade->price < $this->median
+                && $secEMA->now() < $this->median
+                && $secEMA->isDescending(10)
+                && $minEMA->now() < $this->median
+                && $minEMA->isDescending(5)
+            )
             {
                 // borrow at first trade and log once
                 $this->borrow();
@@ -59,8 +64,10 @@ class UnitaryHedgeSell extends UnitaryHedge
             // price is rising and above median
             if ($trade->price > $this->median
                 && $secEMA->now() > $this->median
+                && $secEMA->isAscending(10)
                 && $minEMA->now() > $this->median
-                && $minEMA->isAscending(5))
+                && $minEMA->isAscending(5)
+            )
             {
                 $flip = $this->flip($this->order);
                 if ($this->post($flip)) {
