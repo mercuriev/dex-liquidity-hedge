@@ -2,24 +2,18 @@
 namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
+use App\Binance\MarginIsolatedApi;
 use Binance\Account\MarginIsolatedAccount;
 use Binance\Chart\Indicator\EMA;
-use Binance\Chart\Minutes;
-use Binance\Chart\Seconds;
 use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
-use Binance\MarginIsolatedApi;
-use Binance\MarketDataApi;
 use Binance\Order\AbstractOrder;
 use Bunny\Channel;
-use Bunny\Message;
 use Laminas\Log\Logger;
 
 abstract class UnitaryHedge
 {
-    protected Seconds $sec;
-    protected Minutes $min;
     protected MarginIsolatedAccount $account;
     protected LimitMakerOrder $order;
 
@@ -84,18 +78,6 @@ abstract class UnitaryHedge
         $info = $this->api->exchangeInfo();
         $step = $info->getFilter($this->api->symbol, 'LOT_SIZE')['stepSize'];
         $this->precision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
-
-        // chart data to calculate technical analysis values
-        $this->sec = new Seconds();
-        $this->min = new Minutes();
-        $klines = (new MarketDataApi([]))->getKlines([
-            'symbol' => $this->api->symbol,
-            'interval' => '1m',
-            'startTime' => (time() - 660) * 1000, // last 10 minutes
-            'endTime' => time() * 1000
-        ]);
-        if ($klines) $this->min->withKlines($klines);
-        else throw new \RuntimeException('Failed to load minutes klines.');
     }
 
     /**
@@ -103,9 +85,6 @@ abstract class UnitaryHedge
      */
     public function __invoke(Trade $trade, Channel $ch) : void
     {
-        $this->sec->append($trade);
-        $this->min->append($trade);
-
         // check if trade triggered our order
         if (isset($this->order) && !$this->order->isFilled()) {
             $this->order->match($trade);
@@ -116,7 +95,7 @@ abstract class UnitaryHedge
         }
 
         try {
-            $ema = $this->sec->ema(30);
+            $ema = $this->api->s->ema(30);
             $price = $ema->now();
             // track out of range movements
             $range = function(float $price) {
@@ -141,7 +120,7 @@ abstract class UnitaryHedge
         catch (\UnderflowException) {}
 
         try {
-            $ema = $this->min->ema(5);
+            $ema = $this->api->m->ema(5);
             $range = function(EMA $ema) {
                 return match(true) {
                     $ema->isAscending(5) => 1,

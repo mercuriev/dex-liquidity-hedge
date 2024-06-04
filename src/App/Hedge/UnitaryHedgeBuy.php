@@ -13,20 +13,11 @@ class UnitaryHedgeBuy extends UnitaryHedge
     {
         parent::__invoke($trade, $ch);
 
-        // collect enough data to build technical analysis
-        try {
-            $secEMA  = $this->sec->ema(10);
-            $minEMA  = $this->min->ema(5);
-            if (!$this->ready) {
-                $this->log->info('Collected enough graph info to build EMA.');
-                $this->ready = true;
-            }
-        } catch (\UnderflowException) {
-            return;
-        }
-
         // rate limit post orders once per second
         if (isset($this->lastPost) && $this->lastPost == time()) return;
+
+        $secEMA = $this->api->s->ema(30);
+        $minEMA = $this->api->m->ema(5);
 
         // BUY order: if there are no orders or just sold
         if (!isset($this->order) || ($this->order->isSell() && $this->order->isFilled()))

@@ -5,6 +5,7 @@ use Amqp\Channel;
 use App\Hedge\UnitaryHedgeSell;
 use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -27,7 +28,7 @@ class CancelCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->ch->bunny->publish('', 'hedge', $this->getName());
+        $this->ch->bunny->publish('', 'hedge', 'cancel');
         $this->log->debug('Message sent successfully.');
 
         return Command::SUCCESS;
