@@ -2,8 +2,8 @@
   <configuration default="false" name="Start" type="docker-deploy" factoryName="docker-image" server-name="Docker">
     <deployment type="docker-image">
       <settings>
-        <option name="imageTag" value="php-cli" />
-        <option name="command" value="-d xdebug.client_host=172.21.0.1 -d xdebug.mode=debug hedge.php start" />
+        <option name="imageTag" value="hedge" />
+        <option name="command" value="start" />
         <option name="containerName" value="" />
         <option name="envVars">
           <list>
@@ -13,6 +13,7 @@
             </DockerEnvVarImpl>
           </list>
         </option>
+        <option name="commandLineOptions" value="--network hedgehog_default" />
         <option name="volumeBindings">
           <list>
             <DockerVolumeBindingImpl>
