@@ -3,6 +3,7 @@ namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
 use Binance\Account\MarginIsolatedAccount;
+use Binance\Chart\Indicator\EMA;
 use Binance\Chart\Minutes;
 use Binance\Chart\Seconds;
 use Binance\Event\Trade;
@@ -27,6 +28,7 @@ abstract class UnitaryHedge
     protected int $precision; // base asset precision for rounding
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
     protected int $inrange;
+    protected int $asc;
 
     /**
      * Base asset to sell or quote asset to buy.
@@ -132,6 +134,29 @@ abstract class UnitaryHedge
                 };
                 $this->log->info($msg);
                 $this->inrange = $now;
+            }
+        }
+        catch (\UnderflowException) {}
+
+        try {
+            $ema = $this->min->ema(5);
+            $range = function(EMA $ema) {
+                return match(true) {
+                    $ema->isAscending(5) => 1,
+                    $ema->isDescending(5) => -1,
+                    default => 0,
+                };
+            };
+            if (!isset($this->asc)) $this->asc = $range($ema);
+            $now = $range($ema);
+            if ($this->asc != $now) {
+                $msg = match($now) {
+                    1   => 'Ascending',
+                    0   => 'Descending',
+                    -1  => 'Flat'
+                };
+                $this->log->info($msg);
+                $this->asc = $now;
             }
         }
         catch (\UnderflowException) {}
