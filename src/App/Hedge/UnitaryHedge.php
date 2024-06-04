@@ -11,6 +11,8 @@ use Binance\Exception\ExceedBorrowable;
 use Binance\MarginIsolatedApi;
 use Binance\MarketDataApi;
 use Binance\Order\AbstractOrder;
+use Bunny\Channel;
+use Bunny\Message;
 use Laminas\Log\Logger;
 
 abstract class UnitaryHedge
@@ -93,7 +95,7 @@ abstract class UnitaryHedge
     /**
      * Feed Trade event from exchange so that this can match existing orders and post new.
      */
-    public function __invoke(Trade $trade) : void
+    public function __invoke(Trade $trade, Channel $ch) : void
     {
         $this->sec->append($trade);
         $this->min->append($trade);

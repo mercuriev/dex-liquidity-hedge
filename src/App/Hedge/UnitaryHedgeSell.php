@@ -3,15 +3,19 @@ namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
 use Binance\Event\Trade;
+use Binance\MarginIsolatedApi;
+use Bunny\Channel;
+use Bunny\Message;
+use Laminas\Log\Logger;
 use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
 {
     private bool $ready = false; // when chart has enough data
 
-    public function __invoke(Trade $trade) : void
+    public function __invoke(Trade $trade, Channel $ch) : void
     {
-        parent::__invoke($trade);
+        parent::__invoke($trade, $ch);
 
         // collect enough data to build technical analysis
         try {
@@ -35,7 +39,7 @@ class UnitaryHedgeSell extends UnitaryHedge
         // SELL order: if there are no orders or just bought
         if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled()))
         {
-            if ($trade->price < $this->low)
+            if ($trade->price < $this->median && $secEMA->now() < $this->median)
             {
                 // borrow at first trade and log once
                 $this->borrow();
@@ -45,7 +49,7 @@ class UnitaryHedgeSell extends UnitaryHedge
                 $order->symbol = $this->api->symbol;
                 $order->side = 'SELL';
                 $order->quantity = truncate($this->account->baseAsset->free, $this->precision);
-                $order->price = round($this->median * (1 + $this->fee), 2);
+                $order->price = $this->median; // TODO median plus fee diff
                 if ($this->post($order)) {
                     $this->log($this->order);
                 }
@@ -56,7 +60,10 @@ class UnitaryHedgeSell extends UnitaryHedge
         if (isset($this->order) && $this->order->isSell() && $this->order->isFilled())
         {
             // price is rising and above median
-            if ($trade->price > $this->high)
+            if ($trade->price > $this->median
+                && $secEMA->now() > $this->median
+                && $minEMA->now() > $this->median
+                && $minEMA->isAscending(5))
             {
                 $flip = $this->flip($this->order);
                 if ($this->post($flip)) {

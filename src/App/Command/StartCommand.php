@@ -2,29 +2,29 @@
 
 namespace App\Command;
 
-use App\Hedge\HedgeSell;
-use Binance\Event\Kline;
+use Amqp\Channel;
+use App\Hedge\UnitaryHedgeBuy;
+use App\Hedge\UnitaryHedgeSell;
 use Binance\Event\Trade;
-use Binance\Exception\BinanceException;
-use Binance\Exception\ExceedBorrowable;
 use Binance\MarginIsolatedApi;
-use Binance\WebsocketsApi;
+use Bunny\Message;
+use Laminas\Log\Filter\Priority;
 use Laminas\Log\Logger;
+use Laminas\Log\Writer\AbstractWriter;
+use Psr\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use WebSocket\BadOpcodeException;
 
 class StartCommand extends Command
 {
-    protected string $symbol;
-    protected float $min;
-    protected float $max;
+    /** @var string Active running hedge class */
+    private string $tag = '';
 
     public function __construct(protected readonly Logger            $log,
-                                protected readonly WebsocketsApi     $ws,
-                                protected readonly MarginIsolatedApi $api)
+                                protected readonly MarginIsolatedApi $api,
+                                protected readonly Channel           $ch
+    )
     {
         parent::__construct();
     }
@@ -34,50 +34,89 @@ class StartCommand extends Command
         return 'start';
     }
 
-    public function getHedgeClass() : string
-    {
-        throw new \LogicException('Must override');
-    }
-
     protected function configure(): void
     {
-        $this->setDescription('')
-            ->addArgument('SYMBOL', InputArgument::REQUIRED)
-            ->addArgument('MIN', InputArgument::REQUIRED)
-            ->addArgument('MAX', InputArgument::REQUIRED)
-        ;
+        // send important log entries to telegram
+        $this->log->addWriter(new class($this->ch) extends AbstractWriter
+        {
+            public function __construct(private readonly Channel $ch) {
+                parent::__construct([
+                    'filters' => [
+                        new Priority(Logger::INFO)
+                    ]
+                ]);
+                $ch->exchangeDeclare('log', type: 'topic');
+            }
+            protected function doWrite(array $event): void
+            {
+                $this->ch->bunny->publish($event['message'], 'log', strtolower($event['priorityName']));
+            }
+        });
     }
 
-    /**
-     * @throws BadOpcodeException
-     * @throws ExceedBorrowable
-     * @throws BinanceException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $this->symbol = strtoupper($input->getArgument('SYMBOL'));
-        $this->min    = $input->getArgument('MIN');
-        $this->max    = $input->getArgument('MAX');
+        $q = 'control';
+        $this->ch->exchangeDeclare('hedge', type: 'topic');
+        $this->ch->queueDeclare($q);
+        $this->ch->bind($q, 'hedge', [], '*');
+        $this->ch->bunny->consume($this, $q);
+        $this->ch->bunny->qos(0, 1);
 
-        restart:
-        // subscribe before Hedge so that we always catch Trades for our orders
-        $this->ws->subscribe("$this->symbol@trade");
+        $this->log->debug("Waiting for commands...");
+        $this->ch->run();
 
-        $this->api->symbol = $this->symbol;
-        $class = $this->getHedgeClass();
-        $hedge = new $class($this->log, $this->api, $this->min, $this->max);
+        return Command::FAILURE; // restart by supervisor
+    }
 
-        while ($trade = ($this->ws)(30)) {
-            if ($trade instanceof Trade) {
-                ($hedge)($trade);
-            }
+    public function __invoke(\Bunny\Message $msg, \Bunny\Channel $ch): bool
+    {
+        $this->log->debug('Got message ' . $msg->routingKey . ': ' . $msg->content);
+
+        switch ($msg->routingKey) {
+            case 'sell':
+            case 'buy':
+                if ($this->tag) {
+                    $this->log->err('Alreagy hedging. Cancel first.');
+                    return $ch->ack($msg);
+                }
+
+                list($symbol, $low, $high) = explode(' ', $msg->content);
+                $symbol = strtolower($symbol);
+                $this->api->symbol = strtoupper($symbol);
+                $class = $msg->routingKey == 'sell' ? UnitaryHedgeSell::class : UnitaryHedgeBuy::class;
+                try {
+                    $command = new $class($this->log, $this->api, $low, $high);
+                } catch (\Throwable $e) {
+                    $this->log->err($e->getMessage());
+                    return $ch->ack($msg);
+                }
+                $qName = "hedge.$msg->routingKey";
+                $q = $this->ch->queueDeclare($qName);
+                $ch->queuePurge($qName); // if existed
+                break;
+
+            case 'cancel':
+                $ch->cancel($this->tag);
+                $this->tag = '';
+                $ch->queueDelete('hedge.sell');
+                $ch->queueDelete('hedge.buy');
+                return $ch->ack($msg);
+
+            default:
+                return $ch->ack($msg);
         }
 
-        if (null === $trade) {
-            $this->log->err('No trade received.');
-            goto restart; // avoid recursion for the long-running script
-        }
+        // start processing trades
+        $ch->queueBind($q, 'binance', routingKey: "trade.$symbol");
+        $handler = function(Message $msg, \Bunny\Channel $ch) use ($command) {
+            $trade = unserialize($msg->content);
+            if (!$trade instanceof Trade) throw new \InvalidArgumentException(gettype($trade));
+            $command($trade, $ch);
+            return $ch->ack($msg);
+        };
+        $this->tag = $ch->consume($handler, $q);
 
-        return Command::FAILURE;
+        return $ch->ack($msg);
     }
 }
