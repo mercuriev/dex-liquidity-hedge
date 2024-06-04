@@ -14,23 +14,14 @@ class UnitaryHedgeSell extends UnitaryHedge
     {
         parent::__invoke($trade, $ch);
 
-        // collect enough data to build technical analysis
-        try {
-            $secEMA  = $this->sec->ema(30);
-            $minEMA  = $this->min->ema(5);
-            if (!$this->ready) {
-                $this->log->info('Collected enough graph info to build EMA.');
-                $this->ready = true;
-            }
-        } catch (\UnderflowException) {
-            return;
-        }
-
         // rate limit post orders once per second
         if (isset($this->lastPost) && $this->lastPost == time()) return;
 
         // TODO if minute EMA(10) is below median and sell is not filled enter emergency mode and update order to EMA(10) price every minute. capped by min/max?
         // TODO same as above for buy orders, emergency/fallback mode
+
+        $secEMA = $this->api->s->ema(30);
+        $minEMA = $this->api->m->ema(5);
 
         // SELL order: if there are no orders or just bought
         if (!isset($this->order) || ($this->order->isBuy() && $this->order->isFilled()))

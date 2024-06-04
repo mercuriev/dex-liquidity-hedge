@@ -44,7 +44,11 @@ abstract class HedgeCommand extends Command
         $this->min    = $input->getArgument('MIN');
         $this->max    = $input->getArgument('MAX');
 
-        $this->ch->bunny->publish(implode(' ', [$this->symbol, $this->min, $this->max]), 'hedge', $this->getName());
+        $this->ch->bunny->publish(
+            implode(' ', [$this->min, $this->max]),
+            'hedge',
+            $this->symbol .'.'. $this->getName()
+        );
         $this->log->debug('Message sent successfully.');
 
         return Command::SUCCESS;

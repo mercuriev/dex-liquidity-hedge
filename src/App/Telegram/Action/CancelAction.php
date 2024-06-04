@@ -15,6 +15,7 @@ class CancelAction extends AbstractHandler
      */
     public function execute(): ServerResponse
     {
+        // FIXME require symbol
         $this->ch->bunny->publish('', 'hedge', 'cancel');
         return Request::emptyResponse();
     }
