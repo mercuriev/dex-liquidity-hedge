@@ -112,7 +112,12 @@ class StartCommand extends Command
         $handler = function(Message $msg, \Bunny\Channel $ch) use ($command) {
             $trade = unserialize($msg->content);
             if (!$trade instanceof Trade) throw new \InvalidArgumentException(gettype($trade));
-            $command($trade, $ch);
+            try {
+                $command($trade, $ch);
+            } catch (\Throwable $e) {
+                $this->log->err($e->getMessage()); // this goes to telegram
+                $this->log->debug($e->getTraceAsString());
+            }
             return $ch->ack($msg);
         };
         $this->tag = $ch->consume($handler, $q);
