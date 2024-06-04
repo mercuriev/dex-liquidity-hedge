@@ -4,7 +4,7 @@
       <settings>
         <option name="imageTag" value="hedge" />
         <option name="command" value="start" />
-        <option name="containerName" value="" />
+        <option name="containerName" value="hedgehog-start-1" />
         <option name="envVars">
           <list>
             <DockerEnvVarImpl>
