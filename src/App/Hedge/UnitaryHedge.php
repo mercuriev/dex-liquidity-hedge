@@ -49,7 +49,9 @@ abstract class UnitaryHedge
         protected float             $high
     )
     {
-        if ($this->low >= $this->high) throw new \InvalidArgumentException('Low price must be LOWER than high price');
+        if ($this->low >= $this->high) {
+            throw new \InvalidArgumentException('Low price must be LOWER than high price');
+        }
 
         register_shutdown_function([$this, 'cancel']);
 
@@ -69,7 +71,9 @@ abstract class UnitaryHedge
             $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
         ));
         $this->log->info(sprintf('Total quote with borrowable: %.2f', $quote = $this->getTotalQuoteValue()));
-        if ($quote < 10) throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
+        if ($quote < 10) {
+            throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
+        }
 
         // precision of base asset's quantity
         $info = $this->api->exchangeInfo();
@@ -136,9 +140,9 @@ abstract class UnitaryHedge
     {
         $flip = new LimitMakerOrder();
         $flip->symbol = $order->symbol;
-        $flip->side = $order->side == 'BUY' ? 'SELL' : 'BUY';
+        $flip->side = $order->side === 'BUY' ? 'SELL' : 'BUY';
         $flip->quantity = $order->quantity;
-        $flip->price = round($this->median * ($flip->side == 'BUY' ? 1 - $this->fee : 1 + $this->fee), 2);
+        $flip->price = round($this->median * ($flip->side === 'BUY' ? 1 - $this->fee : 1 + $this->fee), 2);
         return $flip;
     }
 
