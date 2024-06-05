@@ -8,6 +8,7 @@ services:
     depends_on:
       - rabbitmq
     image: hedge
+    container_name: hedge
     build: .
     command: ["start", "BTCFDUSD"]
     volumes:
@@ -17,6 +18,7 @@ services:
     depends_on:
       - rabbitmq
     image: hedge
+    container_name: telegram
     build: .
     command: ["telegram:start"]
     volumes:
@@ -25,6 +27,7 @@ services:
   # subscribe to websockets and publish trades to AMQP
   tradefeed:
     image: hedge
+    container_name: tradefeed
     build: .
     command: ["tradefeed", "ETHFDUSD", "BTCFDUSD"]
     restart: on-failure
@@ -36,6 +39,7 @@ services:
   # on-demand notify user if price moved
   monitor-range:
     image: hedge
+    container_name: monitor-range
     build: .
     command: ["monitor:range"]
     depends_on:
@@ -49,6 +53,7 @@ services:
       - rabbitmq
       - mysql
     image: hedge
+    container_name: db
     build: .
     command: ["db"]
     restart: on-failure
@@ -58,6 +63,7 @@ services:
   # AMQP message queue to enable multitasking in PHP
   rabbitmq:
     hostname: rabbitmq # must be defined for data durability so that db file has always same name
+    container_name: rabbitmq
     image: rabbitmq:3-management
     volumes:
       - rabbitmq:/var/lib/rabbitmq
@@ -65,6 +71,7 @@ services:
   # database and GUI for it
   mysql:
     image: mysql:8
+    container_name: mysql
     command: --default-authentication-plugin=mysql_native_password
     ports:
       - 127.0.0.1:3306:3306
@@ -75,10 +82,3 @@ services:
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
-  pma:
-    image: phpmyadmin
-    environment:
-      - PMA_HOST=mysql
-      - PMA_USER=root
-      - UPLOAD_LIMIT=16G
-      - PMA_PMADB=phpmyadmin
