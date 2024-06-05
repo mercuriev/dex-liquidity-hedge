@@ -9,6 +9,7 @@
     "bunny/bunny": "dev-master",
     "symfony/console": "^v7.0.4",
     "laminas/laminas-servicemanager": "^3.21",
+    "friendsofphp/proxy-manager-lts": "^v1.0.18",
     "laminas/laminas-config-aggregator": "^1.14",
     "laminas/laminas-db": ">=2.20.0",
     "longman/telegram-bot": "^0.82.0"

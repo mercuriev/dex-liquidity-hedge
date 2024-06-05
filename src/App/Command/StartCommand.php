@@ -41,23 +41,6 @@ final class StartCommand extends Command
 
     protected function configure(): void
     {
-        // send important log entries to telegram
-        $this->log->addWriter(new class($this->ch) extends AbstractWriter
-        {
-            public function __construct(private readonly Channel $ch) {
-                parent::__construct([
-                    'filters' => [
-                        new Priority(Logger::INFO)
-                    ]
-                ]);
-                $ch->exchangeDeclare('log', type: 'topic');
-            }
-            protected function doWrite(array $event): void
-            {
-                $this->ch->bunny->publish($event['message'], 'log', strtolower($event['priorityName']));
-            }
-        });
-
         // one thread for each symbol so that multiple symbols can be in work
         $this->addArgument('SYMBOL', InputArgument::REQUIRED, 'The symbol argument');
     }
