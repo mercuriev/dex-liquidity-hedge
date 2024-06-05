@@ -5,6 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/App" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/tests/AppTest" isTestSource="false" packagePrefix="AppTest\" />
+      <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/brick/varexporter" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-config-aggregator" />
@@ -58,7 +59,6 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/textalk/websocket" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-log" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/deprecation-contracts" />
-      <excludeFolder url="file://$MODULE_DIR$/vendor/web3promax/binance" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-db" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/guzzlehttp/guzzle" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/guzzlehttp/promises" />
@@ -66,6 +66,14 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/longman/telegram-bot" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/psr/http-client" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/ralouphie/getallheaders" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/bunny/bunny" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/friendsofphp/proxy-manager-lts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-code" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-diactoros" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/mercuriev/binance" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/react/event-loop" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/react/promise" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
