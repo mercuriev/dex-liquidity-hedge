@@ -60,9 +60,15 @@ class TradefeedCommand extends Command
                 $this->log->err($e->getMessage());
                 return 100;
             }
-            if (is_numeric($res)) continue;
+            if (is_numeric($res)) {
+                // TODO why is number here? remove check
+                $this->log->debug("Got number: $res");
+                continue;
+            }
             $payload = json_decode($res, true);
-            if (array_key_exists('result', $payload)) continue;
+            if (array_key_exists('result', $payload)) {
+                continue;
+            }
 
             $trade = new Trade($payload);
 
