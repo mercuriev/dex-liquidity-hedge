@@ -2,19 +2,15 @@
 namespace App;
 
 use App\Command\BuyCommand;
+use App\Command\CancelCommand;
 use App\Command\DbCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
-use App\Command\CancelCommand;
 use App\Command\TradefeedCommand;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
-use App\Telegram\Action\PoolAction;
 use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
-use Laminas\Log\Logger;
-use Laminas\Log\LoggerServiceFactory;
-use Psr\Container\ContainerInterface;
 
 class ConfigProvider
 {
@@ -30,7 +26,7 @@ class ConfigProvider
                 'sell'              => SellCommand::class,
                 'buy'               => BuyCommand::class,
                 'cancel'            => CancelCommand::class,
-                'telegram:start'    => \App\Telegram\StartCommand::class
+                'telegram:start'    => Telegram\StartCommand::class
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
