@@ -1,0 +1,9 @@
+services:
+  pma:
+    image: phpmyadmin
+    container_name: pma
+    environment:
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - UPLOAD_LIMIT=16G
+      - PMA_PMADB=phpmyadmin
