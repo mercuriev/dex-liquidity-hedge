@@ -17,7 +17,7 @@ abstract class UnitaryHedge
     protected LimitMakerOrder $order;
 
     protected float $median; // order entry / exit price
-    protected float $fee = 0; // median price offset
+    protected float $fee = 0.0005; // median price offset
     protected int $precision; // base asset precision for rounding
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
 
