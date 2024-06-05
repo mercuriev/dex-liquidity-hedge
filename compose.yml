@@ -33,6 +33,16 @@ services:
     volumes:
       - .:/srv
 
+  # on-demand notify user if price moved
+  monitor-range:
+    image: hedge
+    build: .
+    command: ["monitor:range"]
+    depends_on:
+      - rabbitmq
+    volumes:
+      - .:/srv
+
   # record trades to database for backtesting
   db:
     depends_on:
