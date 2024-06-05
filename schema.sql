@@ -28,3 +28,5 @@ SELECT ROUND(`data`->"$.p", 2) AS price, ROUND(`data`->"$.q", 5) AS quantity, `d
 FROM trade
 WHERE DATE(timestamp) = DATE(NOW() - INTERVAL 1 DAY)
 ORDER BY timestamp;
+
+USE telegram;
