@@ -71,7 +71,7 @@ services:
     volumes:
       - mysql:/var/lib/mysql
       - ./schema.sql:/docker-entrypoint-initdb.d/hedge.sql:ro
-      - ./vendor/longman/telegram-bot/structure.sql:/docker-entrypoint-initdb.d/telegram.sql:ro
+      - ./telegram.sql:/docker-entrypoint-initdb.d/telegram.sql:ro
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
