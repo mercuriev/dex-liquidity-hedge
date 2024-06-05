@@ -6,7 +6,7 @@ use App\Command\DbCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
 use App\Command\CancelCommand;
-use App\Command\WatchCommand;
+use App\Command\TradefeedCommand;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\PoolAction;
@@ -24,7 +24,7 @@ class ConfigProvider
 
         return [
             'commands' => [
-                'watch'             => WatchCommand::class,
+                'tradefeed'         => TradefeedCommand::class,
                 'db'                => DbCommand::class,
                 'start'             => StartCommand::class,
                 'sell'              => SellCommand::class,

@@ -16,7 +16,7 @@ use WebSocket\TimeoutException;
 /**
  * Fetch trade data from API websockets and then publish each trade to amq.topic with key binance:market.SYMBOL
  */
-class WatchCommand extends Command
+class TradefeedCommand extends Command
 {
     const EXCHANGE = 'binance';
 
@@ -24,7 +24,7 @@ class WatchCommand extends Command
 
     public function getName() : string
     {
-        return 'watch';
+        return 'tradefeed';
     }
 
     public function __construct(protected Channel $ch, protected WebsocketsApi $binance, protected Logger $log)

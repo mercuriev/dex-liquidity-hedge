@@ -23,10 +23,10 @@ services:
       - .:/srv
 
   # subscribe to websockets and publish trades to AMQP
-  watch:
+  tradefeed:
     image: hedge
     build: .
-    command: ["watch", "ETHFDUSD", "BTCFDUSD"]
+    command: ["tradefeed", "ETHFDUSD", "BTCFDUSD"]
     restart: on-failure
     depends_on:
       - rabbitmq
