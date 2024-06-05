@@ -104,12 +104,16 @@ final class StartCommand extends Command
                         $this->log->debug($e);
                         return $ch->reject($msg, false);
                     }
+
+                    // start notifying price deviations
+                    $ch->publish(implode(' ', [$this->api->symbol, $low, $high]), 'monitor', 'start');
                     break;
 
                 case 'cancel':
                     if (isset($this->hedge)) {
                         $this->hedge->cancel();
                         unset($this->hedge);
+                        $ch->publish($this->api->symbol, 'monitor', 'stop');
                     }
                     return $ch->ack($msg);
 

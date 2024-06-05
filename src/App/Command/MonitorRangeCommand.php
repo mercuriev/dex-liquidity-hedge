@@ -28,6 +28,11 @@ class MonitorRangeCommand extends Command
         parent::__construct();
     }
 
+    /**
+     * Example:
+     *   monitor:start
+     *   BTCFDUSD 70000 71000
+     */
     public function __invoke(\Bunny\Message $msg, \Bunny\Channel $ch): bool
     {
         // control messages
