@@ -18,7 +18,8 @@ use WebSocket\TimeoutException;
  */
 class TradefeedCommand extends Command
 {
-    const EXCHANGE = 'binance';
+    public const EXCHANGE = 'binance';
+    private const TIMEOUT = 10;
 
     private Client $ws;
 
@@ -75,6 +76,7 @@ class TradefeedCommand extends Command
     private function connectAndSubscribe(array $topics) : void
     {
         $this->ws = new Client('wss://stream.binance.com:9443/ws/bookTicker');
+        $this->ws->setTimeout(self::TIMEOUT);
 
         $payload = [
             'id' => 2,
