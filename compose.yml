@@ -17,6 +17,7 @@ services:
   telegram:
     depends_on:
       - rabbitmq
+      - mysql
     image: hedge
     container_name: telegram
     build: .
