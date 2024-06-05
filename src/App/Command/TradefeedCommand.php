@@ -45,9 +45,9 @@ class TradefeedCommand extends Command
 
         //
         $topics = $input->getArgument('symbols');
-        foreach ($topics as &$t) {
-            $t = strtolower($t) . '@trade';
-        }
+        $topics = array_map(static function ($t) {
+            return strtolower($t) . '@trade';
+        }, $topics);
         $this->connectAndSubscribe($topics);
 
         //
@@ -57,7 +57,7 @@ class TradefeedCommand extends Command
                 $res = $this->ws->receive();
             }
             catch (TimeoutException $e) {
-                $this->log->err($e->getMessage());
+                $this->log->err('feed: '.$e->getMessage());
                 return 100;
             }
             if (is_numeric($res)) {
@@ -65,7 +65,7 @@ class TradefeedCommand extends Command
                 $this->log->debug("Got number: $res");
                 continue;
             }
-            $payload = json_decode($res, true);
+            $payload = json_decode($res, true, 512, JSON_THROW_ON_ERROR);
             if (array_key_exists('result', $payload)) {
                 continue;
             }
@@ -89,12 +89,12 @@ class TradefeedCommand extends Command
             'method' => 'SUBSCRIBE',
             'params' => $topics
         ];
-        $this->ws->send(json_encode($payload));
+        $this->ws->send(json_encode($payload, JSON_THROW_ON_ERROR));
 
         $resp = $this->ws->receive();
-        $resp = json_decode($resp, true);
+        $resp = json_decode($resp, true, 512, JSON_THROW_ON_ERROR);
         if (!array_key_exists('result', $resp) || $resp['result'] !== null) {
-            throw new \RuntimeException("Failed to subscribe\n" . json_encode($resp));
+            throw new \RuntimeException("Failed to subscribe\n" . json_encode($resp, JSON_THROW_ON_ERROR));
         }
 
         $this->log->debug('Connected and subscribed to ' . implode(', ', $topics));
