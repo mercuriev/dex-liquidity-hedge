@@ -1,6 +1,8 @@
 <?php
 namespace App\Command;
 
+use Binance\Event\Trade;
+use Bunny\Message;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -17,7 +19,7 @@ class DbCommand extends Command
     private Logger $log;
     private Channel $ch;
 
-    const BATCH_SIZE = 50;
+    public const BATCH_SIZE = 50;
     private array $batch = [];
 
     public function getName(): string
@@ -34,9 +36,9 @@ class DbCommand extends Command
         parent::__construct();
     }
 
-    public function __invoke(\Bunny\Message $req, \Bunny\Channel $ch): bool
+    public function __invoke(Message $req, \Bunny\Channel $ch): bool
     {
-        $msg = unserialize($req->content);
+        $msg = unserialize($req->content, ['allowed_classes' => Trade::class]);
 
         $time = (string) $msg['T'] / 1000;
         $time = sprintf('%.3F', $time);
@@ -52,7 +54,7 @@ class DbCommand extends Command
 
         if (count($this->batch) >= self::BATCH_SIZE) {
             $sql = 'INSERT IGNORE INTO trade VALUES ';
-            foreach ($this->batch as $row) {
+            foreach ($this->batch as $ignored) {
                 $sql .= '(?, ?, ?, ?),';
             }
             $sql = substr($sql, 0, -1);
