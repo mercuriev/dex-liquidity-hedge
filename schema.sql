@@ -1,6 +1,3 @@
--- for the next telegram-bot structure.sql
-CREATE DATABASE telegram;
-
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
@@ -28,5 +25,3 @@ SELECT ROUND(`data`->"$.p", 2) AS price, ROUND(`data`->"$.q", 5) AS quantity, `d
 FROM trade
 WHERE DATE(timestamp) = DATE(NOW() - INTERVAL 1 DAY)
 ORDER BY timestamp;
-
-USE telegram;
