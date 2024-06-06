@@ -1,23 +1,17 @@
 <?php
 namespace App;
 
-use Amqp\Channel;
-use App\Command\BuyCommand;
-use App\Command\CancelCommand;
+use App\Command\Cli\BuyCommand;
+use App\Command\Cli\CancelCommand;
+use App\Command\Cli\SellCommand;
 use App\Command\DbCommand;
 use App\Command\FeedCommand;
 use App\Command\MonitorRangeCommand;
-use App\Command\SellCommand;
 use App\Command\StartCommand;
-use App\Logger\AmqpWriter;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
-use Interop\Container\Containerinterface;
-use Laminas\Log\Logger;
-use Laminas\Log\LoggerServiceFactory;
-use Laminas\ServiceManager\Proxy\LazyServiceFactory;
 
 class ConfigProvider
 {

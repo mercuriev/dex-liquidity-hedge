@@ -42,7 +42,7 @@ final class StartCommand extends Command
     protected function configure(): void
     {
         // one thread for each symbol so that multiple symbols can be in work
-        $this->addArgument('SYMBOL', InputArgument::REQUIRED, 'The symbol argument');
+        $this->addArgument('SYMBOL', InputArgument::OPTIONAL);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
