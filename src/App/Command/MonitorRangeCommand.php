@@ -71,7 +71,9 @@ class MonitorRangeCommand extends Command
             else $range =& $this->ranges[$symbol];
 
             $trade = unserialize($msg->content);
-            if (!$trade instanceof Trade) return $ch->reject($msg, false);
+            if (!$trade instanceof Trade) {
+                return $ch->reject($msg, false);
+            }
 
             $check = function(float $price, $range) {
                 return match(true) {
