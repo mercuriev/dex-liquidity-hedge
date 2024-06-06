@@ -73,13 +73,13 @@ abstract class Hedge extends \SplFixedArray
             $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
             $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
         );
-        $this->log->info($msg);
+        $this->log->notice($msg);
 
         if ($this->account->marginLevel == 999) {
             $this->borrow();
         }
         else {
-            $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
+            $this->log->notice('Skip borrow. Margin level: ' . $this->account->marginLevel);
         }
 
         $size = $this->callApiForMaxOrders();
@@ -91,7 +91,7 @@ abstract class Hedge extends \SplFixedArray
 
         // first call fills the prices array and calc step
         $this->prices = $this->getPrices();
-        $this->log->info(sprintf(
+        $this->log->notice(sprintf(
             'Range: %.2f - %.2f (%.2f%%) / Step: %.2f',
             $this->min, $this->max, (($this->max - $this->min)/$this->max * 100),
             $this->step,
@@ -105,7 +105,7 @@ abstract class Hedge extends \SplFixedArray
                 $totalQuote += round($this[$i]->quantity * $this[$i]->price, 2);
             }
         }
-        $this->log->info("Total quote value: $totalQuote");
+        $this->log->notice("Total quote value: $totalQuote");
     }
 
     /**
@@ -217,7 +217,7 @@ abstract class Hedge extends \SplFixedArray
         $msg .= ' ('.round($order->quantity * $order->price, 2).')';
         $msg .= sprintf(' / %.2f <-> %.5f', $this->account->quoteAsset->totalAsset, $this->account->baseAsset->totalAsset);
 
-        $this->log->info($msg);
+        $this->log->notice($msg);
     }
 
     protected function getPrices() : array

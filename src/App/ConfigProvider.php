@@ -81,7 +81,7 @@ class ConfigProvider
                         {
                             $log = parent::__invoke($container, $requestedName, $options);
                             $writer = $container->get(AmqpWriter::class);
-                            $writer->addFilter(Logger::INFO);
+                            $writer->addFilter(Logger::NOTICE);
                             $log->addWriter($writer);
                             return $log;
                         }
