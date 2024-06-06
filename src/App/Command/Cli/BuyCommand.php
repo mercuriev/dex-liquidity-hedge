@@ -1,12 +1,10 @@
 <?php
-namespace App\Command;
-
-use App\Hedge\UnitaryHedgeBuy;
+namespace App\Command\Cli;
 
 /**
  * Send AMQP message to start hedging.
  */
-class BuyCommand extends HedgeCommand
+class BuyCommand extends SellCommand
 {
     public function getName() : string
     {

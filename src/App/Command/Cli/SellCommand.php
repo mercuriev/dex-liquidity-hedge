@@ -1,21 +1,15 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Cli;
 
 use Amqp\Channel;
-use Amqp\Message;
-use Binance\Event\Trade;
-use Binance\Exception\BinanceException;
-use Binance\Exception\ExceedBorrowable;
-use Binance\MarginIsolatedApi;
-use Binance\WebsocketsApi;
 use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-abstract class HedgeCommand extends Command
+class SellCommand extends Command
 {
     public readonly string $symbol;
     public float $min;
@@ -27,6 +21,11 @@ abstract class HedgeCommand extends Command
     )
     {
         parent::__construct();
+    }
+
+    public function getName() : string
+    {
+        return 'sell';
     }
 
     protected function configure(): void
