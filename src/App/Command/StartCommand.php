@@ -66,6 +66,7 @@ final class StartCommand extends Command
         $q = 'hedge.' . $this->api->symbol;
         $this->ch->exchangeDeclare('hedge', type: 'topic');
         $this->ch->queueDeclare($q);
+        $this->ch->queuePurge($q);
         $this->ch->bind($q, 'hedge', [], $this->api->symbol.'.*');
         $this->ch->bind($q, 'hedge', [], 'cancel');
         $this->ch->bind($q, 'binance', rkey: strtolower("trade.{$this->api->symbol}"));
