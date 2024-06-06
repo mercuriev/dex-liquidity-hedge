@@ -7,7 +7,7 @@ use App\Command\Cli\SellCommand;
 use App\Command\DbCommand;
 use App\Command\FeedCommand;
 use App\Command\MonitorRangeCommand;
-use App\Command\StartCommand;
+use App\Command\HedgeCommand;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\SellAction;
@@ -25,7 +25,7 @@ class ConfigProvider
             'commands' => [
                 'feed'              => FeedCommand::class,
                 'db'                => DbCommand::class,
-                'start'             => StartCommand::class,
+                'hedge'             => HedgeCommand::class,
                 'sell'              => SellCommand::class,
                 'buy'               => BuyCommand::class,
                 'cancel'            => CancelCommand::class,
