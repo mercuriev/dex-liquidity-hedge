@@ -4,23 +4,13 @@ volumes:
 
 services:
   # The APP's business logic
-  hedge-btc:
+  hedge:
     depends_on:
       - rabbitmq
     image: hedge
-    container_name: hedge-btc
+    container_name: hedge
     build: .
-    command: ["hedge", "BTCFDUSD"]
-    volumes:
-      - .:/srv
-
-  hedge-bnb:
-    depends_on:
-      - rabbitmq
-    image: hedge
-    container_name: hedge-bnb
-    build: .
-    command: ["hedge", "BNBFDUSD"]
+    command: ["hedge"]
     volumes:
       - .:/srv
 

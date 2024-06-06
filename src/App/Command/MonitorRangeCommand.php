@@ -45,14 +45,14 @@ class MonitorRangeCommand extends Command
                 // yes, rewrite existing without check so that it is simple to update
                 $this->ranges[$symbol] = [$low, $high];
                 $ch->queueBind(self::QUEUE_NAME, 'binance', "trade.$symbol");
-                $this->log->notice(sprintf('Monitoring %s between %.2f and %2.f', $symbol, $low, $high));
+                $this->log->info(sprintf('Monitoring %s between %.2f and %2.f', $symbol, $low, $high));
                 return $ch->ack($msg);
             }
             if ($msg->routingKey == 'stop') {
                 $symbol = strtolower($msg->content);
                 unset($this->ranges[$symbol]);
                 $ch->queueUnbind(self::QUEUE_NAME, 'binance', "trade.$symbol");
-                $this->log->notice("Stopped monitoring $symbol.");
+                $this->log->info("Stopped monitoring $symbol.");
                 return $ch->ack($msg);
             }
         }

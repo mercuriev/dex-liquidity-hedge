@@ -53,7 +53,7 @@ abstract class UnitaryHedge
             throw new \InvalidArgumentException('Low price must be LOWER than high price');
         }
 
-        register_shutdown_function([$this, 'cancel']);
+        register_shutdown_function([$this, 'shutdown']);
 
         // the price assets are traded for on DEX. On CEX this places opposite order for the price.
         $this->median = round(($this->low + $this->high) / 2);
@@ -207,12 +207,12 @@ abstract class UnitaryHedge
      * Logs a message indicating that the system is shutting down.
      * Cancels order if any.
      */
-    public function cancel() : void
+    public function shutdown() : void
     {
-        ($this->log)->info('Shutting down...');
+        ($this->log)->notice(sprintf('Stopped hedging %s (%.2f - %.2f)', $this->api->symbol, $this->low, $this->high));
         if (isset($this->order) && $this->order->isNew()) {
             $this->api->cancel($this->order);
-            ($this->log)->info("Canceled $this->order");
+            ($this->log)->notice("Canceled $this->order");
         }
         // TODO repay if no balance changes???? or keep for the next to avoid an hour interest fee
     }
