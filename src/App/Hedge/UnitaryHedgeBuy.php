@@ -9,9 +9,9 @@ class UnitaryHedgeBuy extends UnitaryHedge
 {
     private bool $ready = false; // when chart has enough data
 
-    public function __invoke(Trade $trade, \Bunny\Channel $ch) : void
+    public function __invoke(Trade $trade) : void
     {
-        parent::__invoke($trade, $ch);
+        parent::__invoke($trade);
 
         // rate limit post orders once per second
         if (isset($this->lastPost) && $this->lastPost == time()) return;

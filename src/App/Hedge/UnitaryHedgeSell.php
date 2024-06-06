@@ -8,9 +8,9 @@ use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
 {
-    public function __invoke(Trade $trade, Channel $ch) : void
+    public function __invoke(Trade $trade) : void
     {
-        parent::__invoke($trade, $ch);
+        parent::__invoke($trade);
 
         // rate limit post orders once per second
         if (isset($this->lastPost) && $this->lastPost == time()) return;
