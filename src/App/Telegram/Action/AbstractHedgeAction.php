@@ -30,11 +30,10 @@ abstract class AbstractHedgeAction extends AbstractHandler
 
     public function publish(array $notes): string
     {
-        $symbol = strtoupper($notes['symbol']);
         $this->ch->bunny->publish(
-            $notes['low'].' '.$notes['high'],
+            implode(' ', [$notes['symbol'], $notes['low'], $notes['high']]),
             'hedge',
-            "$symbol.".$this->getName()
+            $this->getName()
         );
         return '';
     }

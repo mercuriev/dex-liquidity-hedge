@@ -142,5 +142,6 @@ class FeedCommand extends Command
             case 'unsub':
                 $this->subscribe($msg->content, $msg->routingKey === 'unsub');
         }
+        $this->ch->bunny->ack($msg);
     }
 }

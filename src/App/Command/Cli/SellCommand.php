@@ -44,11 +44,11 @@ class SellCommand extends Command
         $this->max    = $input->getArgument('MAX');
 
         $this->ch->bunny->publish(
-            implode(' ', [$this->min, $this->max]),
+            $body = implode(' ', [$this->symbol, $this->min, $this->max]),
             'hedge',
-            $this->symbol .'.'. $this->getName()
+            $name = $this->getName()
         );
-        $this->log->debug('Message sent successfully.');
+        $this->log->debug("Send $name: $body");
 
         return Command::SUCCESS;
     }
