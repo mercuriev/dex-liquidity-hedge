@@ -73,10 +73,12 @@ class StartCommand extends Command
         $send = function (\Bunny\Message $message, \Bunny\Channel $channel) use ($tg) : void
         {
             $admins = $tg->getAdminList();
-            Request::sendMessage([
-                'chat_id'   => $admins[0],
-                'text'      => $message->content
-            ]);
+            foreach ($admins as $admin) {
+                Request::sendMessage([
+                    'chat_id' => $admin,
+                    'text' => $message->content
+                ]);
+            }
             $channel->ack($message);
         };
 
