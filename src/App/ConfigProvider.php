@@ -61,31 +61,6 @@ class ConfigProvider
                     CancelAction::class
                 ]
             ],
-            'dependencies' => [
-                'lazy_services' => [
-                    'class_map' => [
-                        // lazy service solves circular dep with Logger
-                        Channel::class => Channel::class,
-                    ],
-                ],
-                'delegators' => [
-                    Channel::class => [
-                        LazyServiceFactory::class,
-                    ],
-                ],
-                'factories' => [
-                    Logger::class => new class extends LoggerServiceFactory {
-                        public function __invoke(ContainerInterface $container, $requestedName, ?array $options = null) : Logger
-                        {
-                            $log = parent::__invoke($container, $requestedName, $options);
-                            $writer = $container->get(AmqpWriter::class);
-                            $writer->addFilter(Logger::NOTICE);
-                            $log->addWriter($writer);
-                            return $log;
-                        }
-                    }
-                ]
-            ],
         ];
     }
 }
