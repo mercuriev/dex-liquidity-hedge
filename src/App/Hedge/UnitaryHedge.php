@@ -57,7 +57,7 @@ abstract class UnitaryHedge
 
         // the price assets are traded for on DEX. On CEX this places opposite order for the price.
         $this->median = round(($this->low + $this->high) / 2);
-        $this->log->info(sprintf(
+        $this->log->notice(sprintf(
             '%s Range: %.2f - %.2f (%.2f%%) / Median: %.2f',
             $this->api->symbol,
             $this->low, $this->high, (($this->high - $this->low) / $this->high * 100),
@@ -66,11 +66,11 @@ abstract class UnitaryHedge
 
         // fetch account assets and display it
         $this->account = $this->api->getAccount($this->api->symbol);
-        $this->log->info(sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
+        $this->log->notice(sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
             $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
             $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
         ));
-        $this->log->info(sprintf('Total quote with borrowable: %.2f', $quote = $this->getTotalQuoteValue()));
+        $this->log->notice(sprintf('Total quote with borrowable: %.2f', $quote = $this->getTotalQuoteValue()));
         if ($quote < 10) {
             throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
         }
@@ -162,7 +162,7 @@ abstract class UnitaryHedge
     {
         if ($this->account->marginLevel < 999) {
             if (!isset($this->lastPost)) { // log entry only for the first order to avoid flood
-                $this->log->info('Skip borrow. Margin level: ' . $this->account->marginLevel);
+                $this->log->notice('Skip borrow. Margin level: ' . $this->account->marginLevel);
             }
             return 0;
         }
@@ -171,7 +171,7 @@ abstract class UnitaryHedge
         $max = $this->api->maxBorrowable($asset); // unlikely to fail but defines $max
         try {
             $this->api->borrow($asset, $max);
-            $this->log->info(sprintf('Borrowed %.5f %s', $max, $this->getBorrowAsset()));
+            $this->log->notice(sprintf('Borrowed %.5f %s', $max, $this->getBorrowAsset()));
             // refresh account assets
             $this->account = $this->api->getAccount($this->api->symbol);
             return $max;
@@ -198,7 +198,7 @@ abstract class UnitaryHedge
     {
         $msg = (string) $order;
         $msg .= sprintf(' / %.2f <-> %.5f', $this->account->quoteAsset->totalAsset, $this->account->baseAsset->totalAsset);
-        $this->log->info($msg);
+        $this->log->notice($msg);
     }
 
     /**
