@@ -19,7 +19,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-final class StartCommand extends Command
+final class HedgeCommand extends Command
 {
     /** @var string Active running hedge consumer tag. */
     private string $tag = '';
@@ -36,7 +36,7 @@ final class StartCommand extends Command
 
     public function getName() : string
     {
-        return 'start';
+        return 'hedge';
     }
 
     protected function configure(): void

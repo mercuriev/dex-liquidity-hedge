@@ -10,7 +10,7 @@ services:
     image: hedge
     container_name: hedge-btc
     build: .
-    command: ["start", "BTCFDUSD"]
+    command: ["hedge", "BTCFDUSD"]
     volumes:
       - .:/srv
 
@@ -20,7 +20,7 @@ services:
     image: hedge
     container_name: hedge-bnb
     build: .
-    command: ["start", "BNBFDUSD"]
+    command: ["hedge", "BNBFDUSD"]
     volumes:
       - .:/srv
 
