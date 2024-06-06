@@ -35,12 +35,12 @@ services:
     volumes:
       - .:/srv
 
-  # subscribe to websockets and publish trades to AMQP
-  tradefeed:
+  # subscribe to binance websockets and publish info to AMQP
+  feed:
     image: hedge
-    container_name: tradefeed
+    container_name: feed
     build: .
-    command: ["tradefeed", "ETHFDUSD", "BTCFDUSD", "BNBFDUSD"]
+    command: ["feed"]
     restart: on-failure
     depends_on:
       - rabbitmq
