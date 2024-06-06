@@ -15,23 +15,28 @@ use WebSocket\TimeoutException;
 
 /**
  * Fetch data from API websockets and then publish each trade to amq.topic with key binance:market.SYMBOL
+ *
+ * To sub/unsub send a message to feed exchange with rkey sub/unsub and body of symbol.
  */
 class FeedCommand extends Command
 {
     public const EXCHANGE = 'binance';
     private const TIMEOUT = 10;
+    public const QUEUE = 'feed';
 
     private Client $ws;
     private int $id = 0;
+    private int $lastGet = 0;
 
     public function getName() : string
     {
         return 'feed';
     }
 
-    public function __construct(protected Channel $ch, protected WebsocketsApi $binance, protected Logger $log)
+    public function __construct(private array $config, protected Channel $ch, protected WebsocketsApi $binance, protected Logger $log)
     {
         parent::__construct();
+        $this->config = $this->config['feed'] ?? [];
     }
 
     protected function configure(): void
@@ -42,37 +47,66 @@ class FeedCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $symbols = $input->getArgument('symbols');
+        // define control queue
+        $ch = $this->ch->bunny; // back-compat
+        $ch->exchangeDeclare('feed', 'topic');
+        $ch->queueDelete(self::QUEUE);
+        $ch->queueDeclare(self::QUEUE);
+        $ch->queueBind(self::QUEUE, 'feed', 'sub');
+        $ch->queueBind(self::QUEUE, 'feed', 'unsub');
+
+        // subscribe to startup symbols, if any
+        $symbols = array_merge(
+            $this->config['symbols'] ?? [],
+            $input->getArgument('symbols')
+        );
         foreach ($symbols as $symbol) {
-            $this->subscribe($symbol);
+            $this->ch->bunny->publish($symbol, 'feed', 'sub');
         }
 
-        //
-        while (isset($this->ws) && $this->ws->isConnected())
-        {
-            try {
-                $res = $this->ws->receive();
-                $payload = json_decode($res, true, 512, JSON_THROW_ON_ERROR);
-                switch (@$payload['e']) {
-                    case 'trade':
-                        $payload = new Trade($payload);
-                        break;
-
-                    default: continue 2;
+        // main loop
+        do {
+            // poll queue (rate limited)
+            if (time() != $this->lastGet) {
+                $msg = $ch->get(self::QUEUE);
+                if ($msg) {
+                    $this->processMessage($msg);
                 }
-
-                // publish
-                $this->ch->bunny->publish(
-                    serialize($payload),
-                    self::EXCHANGE,
-                    strtolower("trade.{$payload['s']}")
-                );
             }
-            catch (TimeoutException $e) {
-                $this->log->err('feed: '.$e->getMessage());
-                break;
+
+            // fetch websockets
+            if (isset($this->ws) && $this->ws->isConnected())
+            {
+                try {
+                    $res = $this->ws->receive();
+                    $payload = json_decode($res, true, 512, JSON_THROW_ON_ERROR);
+                    switch (@$payload['e']) {
+                        case 'trade':
+                            $payload = new Trade($payload);
+                            break;
+
+                        default: continue 2;
+                    }
+
+                    // publish
+                    $this->ch->bunny->publish(
+                        serialize($payload),
+                        self::EXCHANGE,
+                        strtolower("trade.{$payload['s']}")
+                    );
+                }
+                catch (TimeoutException $e) {
+                    $this->log->err('feed: '.$e->getMessage());
+                    break;
+                }
+            }
+            else {
+                // wait for messages if not subscribed yet
+                usleep(500000);
             }
         }
+        while (true);
+
         return 100; // Disconnected. Restart by supervisor
     }
 
@@ -99,5 +133,14 @@ class FeedCommand extends Command
     private function unsubscribe(string $symbol) : void
     {
         $this->subscribe($symbol, true);
+    }
+
+    private function processMessage(\Bunny\Message $msg) : void
+    {
+        switch ($msg->routingKey) {
+            case 'sub':
+            case 'unsub':
+                $this->subscribe($msg->content, $msg->routingKey === 'unsub');
+        }
     }
 }
