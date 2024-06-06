@@ -78,7 +78,7 @@ class DbCommand extends Command
         $q = 'db';
 
         $this->ch->queueDeclare($q);
-        $this->ch->bind($q, TradefeedCommand::EXCHANGE, [], 'trade.*');
+        $this->ch->bind($q, FeedCommand::EXCHANGE, [], 'trade.*');
         $this->ch->bunny->consume($this, $q);
         $this->ch->bunny->qos(0, self::BATCH_SIZE);
 
