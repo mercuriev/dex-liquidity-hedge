@@ -5,20 +5,18 @@ use Amqp\Channel;
 use App\Command\BuyCommand;
 use App\Command\CancelCommand;
 use App\Command\DbCommand;
+use App\Command\FeedCommand;
 use App\Command\MonitorRangeCommand;
 use App\Command\SellCommand;
 use App\Command\StartCommand;
-use App\Command\TradefeedCommand;
 use App\Logger\AmqpWriter;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\SellAction;
 use App\Telegram\Handler\MessageHandler;
 use Interop\Container\Containerinterface;
-use Laminas\Log\Filter\Priority;
 use Laminas\Log\Logger;
 use Laminas\Log\LoggerServiceFactory;
-use Laminas\Log\Writer\AbstractWriter;
 use Laminas\ServiceManager\Proxy\LazyServiceFactory;
 
 class ConfigProvider
@@ -31,7 +29,7 @@ class ConfigProvider
         // send important log entries to telegram
         return [
             'commands' => [
-                'tradefeed'         => TradefeedCommand::class,
+                'feed'              => FeedCommand::class,
                 'db'                => DbCommand::class,
                 'start'             => StartCommand::class,
                 'sell'              => SellCommand::class,
