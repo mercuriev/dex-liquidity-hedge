@@ -70,13 +70,12 @@ class UnitaryHedgeSell extends UnitaryHedge
 
     protected function getTotalQuoteValue(): float
     {
-        $median = round(($this->low + $this->high) / 2);
         $value = $this->account->quoteAsset->free;
-        $value += $this->account->baseAsset->free * $median;
+        $value += $this->account->baseAsset->free * $this->account->indexPrice;
         if ($this->account->marginLevel == 999) {
             $asset = $this->getBorrowAsset();
             $borrowable = $this->api->maxBorrowable($asset);
-            $value += $borrowable * $median;
+            $value += $borrowable * $this->account->indexPrice;
         }
         return $value;
     }
