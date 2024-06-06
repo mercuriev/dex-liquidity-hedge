@@ -112,6 +112,7 @@ final class HedgeCommand extends Command
                     $this->hedge->shutdown();
                     unset($this->hedge);
                     $ch->queueDelete('hedge.' . $this->api->symbol);
+                    $this->ch->bunny->publish($this->api->symbol, 'feed', 'unsub');
                     $ch->publish($this->api->symbol, 'monitor', 'stop');
                 }
                 break;
