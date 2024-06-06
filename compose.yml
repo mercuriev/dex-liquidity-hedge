@@ -8,9 +8,19 @@ services:
     depends_on:
       - rabbitmq
     image: hedge
-    container_name: hedge
+    container_name: hedge-btc
     build: .
     command: ["start", "BTCFDUSD"]
+    volumes:
+      - .:/srv
+
+  hedge-bnb:
+    depends_on:
+      - rabbitmq
+    image: hedge
+    container_name: hedge-bnb
+    build: .
+    command: ["start", "BNBFDUSD"]
     volumes:
       - .:/srv
 
@@ -30,7 +40,7 @@ services:
     image: hedge
     container_name: tradefeed
     build: .
-    command: ["tradefeed", "ETHFDUSD", "BTCFDUSD"]
+    command: ["tradefeed", "ETHFDUSD", "BTCFDUSD", "BNBFDUSD"]
     restart: on-failure
     depends_on:
       - rabbitmq
