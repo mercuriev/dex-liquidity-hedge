@@ -84,7 +84,7 @@ abstract class UnitaryHedge
     /**
      * Feed Trade event from exchange so that this can match existing orders and post new.
      */
-    public function __invoke(Trade $trade, Channel $ch) : void
+    public function __invoke(Trade $trade) : void
     {
         // check if trade triggered our order
         if (isset($this->order) && !$this->order->isFilled()) {
