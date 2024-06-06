@@ -38,6 +38,9 @@ class ConfigProvider
                 'monitor:range'     => MonitorRangeCommand::class,
                 'telegram:start'    => Telegram\StartCommand::class
             ],
+            'feed' => [
+                'symbols' => ['bnbfdusd']
+            ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
             ],
