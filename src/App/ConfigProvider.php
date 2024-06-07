@@ -39,6 +39,14 @@ class ConfigProvider
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
+                'exchanges' => [
+                    // TODO proper exchange definition in amqp lib
+                    ['binance', [], 0, 'topic'],
+                    ['feed',    [], 0, 'topic'],
+                    ['hedge',   [], 0, 'topic'],
+                    ['log',     [], 0, 'topic'],
+                    ['monitor', [], 0, 'topic'],
+                ]
             ],
             'db' => [
                 'driver' => 'Pdo_Mysql',
