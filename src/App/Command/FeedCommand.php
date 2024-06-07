@@ -21,7 +21,7 @@ use WebSocket\TimeoutException;
 class FeedCommand extends Command
 {
     public const EXCHANGE = 'binance';
-    private const TIMEOUT = 10;
+    private const TIMEOUT = 45;  // timeout must be high because there might be just no trades happening
     public const QUEUE = 'feed';
 
     private Client $ws;
