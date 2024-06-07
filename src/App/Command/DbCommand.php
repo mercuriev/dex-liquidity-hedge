@@ -38,7 +38,7 @@ class DbCommand extends Command
 
     public function __invoke(Message $req, \Bunny\Channel $ch): bool
     {
-        $msg = unserialize($req->content, ['allowed_classes' => Trade::class]);
+        $msg = unserialize($req->content, ['allowed_classes' => [Trade::class]]);
 
         $time = (string) $msg['T'] / 1000;
         $time = sprintf('%.3F', $time);
