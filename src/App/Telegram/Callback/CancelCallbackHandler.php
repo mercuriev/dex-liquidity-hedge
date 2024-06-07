@@ -11,7 +11,7 @@ use Longman\TelegramBot\Request;
 class CancelCallbackHandler extends AbstractCallbackHandler
 {
     protected array $callbacks = ['cancel'];
-    function run(CallbackQuery $query) : ?ServerResponse
+    public function run(CallbackQuery $query) : ?ServerResponse
     {
         $user = $query->getFrom();
         $chat = $query->getFrom()->getId();
@@ -21,6 +21,6 @@ class CancelCallbackHandler extends AbstractCallbackHandler
 
         Request::sendMessage(['chat_id' => $chat, 'text' => 'Canceled.']);
 
-        return $query->answer([]);
+        return $query->answer();
     }
 }

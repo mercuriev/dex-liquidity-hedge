@@ -4,6 +4,7 @@ namespace App\Command\Monitor;
 
 use Amqp\Channel;
 use Binance\Event\Trade;
+use Bunny\Message;
 use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,8 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class MonitorRangeCommand extends Command
 {
-    const QUEUE_NAME = 'monitor-range';
-    const FREQ = 60; // check every FREQ seconds
+    public const QUEUE_NAME = 'monitor-range';
+    public const FREQ = 60; // check every FREQ seconds
     private int $last;
 
     // symbol => [$low, $high, $status]
@@ -33,13 +34,13 @@ class MonitorRangeCommand extends Command
      *   monitor:start
      *   BTCFDUSD 70000 71000
      */
-    public function __invoke(\Bunny\Message $msg, \Bunny\Channel $ch): bool
+    public function __invoke(Message $msg, \Bunny\Channel $ch): bool
     {
         // control messages
         if ($msg->exchange == 'monitor')
         {
             if ($msg->routingKey == 'start') {
-                list($symbol, $low, $high) = explode(' ', $msg->content);
+                [$symbol, $low, $high] = explode(' ', $msg->content);
                 $symbol = strtolower($symbol);
                 // TODO input check
                 // yes, rewrite existing without check so that it is simple to update
@@ -75,7 +76,7 @@ class MonitorRangeCommand extends Command
                 return $ch->reject($msg, false);
             }
 
-            $check = function(float $price, $range) {
+            $check = static function(float $price, $range) {
                 return match(true) {
                     $price < $range[0]  => 'below',
                     $price > $range[1]  => 'above',

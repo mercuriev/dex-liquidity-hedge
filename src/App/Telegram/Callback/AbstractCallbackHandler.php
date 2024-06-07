@@ -14,7 +14,7 @@ abstract class AbstractCallbackHandler
      */
     protected array $callbacks = [];
 
-    abstract function run(CallbackQuery $query) : ?ServerResponse;
+    abstract public function run(CallbackQuery $query) : ?ServerResponse;
 
     /**
      * fter the user presses a callback button,

@@ -16,7 +16,7 @@ class Message extends \ArrayObject
         ];
 
         if ($chat->isGroupChat() || $chat->isSuperGroup()) {
-            // Force reply is applied by default so it can work with privacy on
+            // Force reply is applied by default, so it can work with privacy on
             $data['reply_markup'] = Keyboard::forceReply(['selective' => true]);
         }
 

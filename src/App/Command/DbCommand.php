@@ -53,6 +53,7 @@ class DbCommand extends Command
         ];
 
         if (count($this->batch) >= self::BATCH_SIZE) {
+            /** @noinspection Annotator */
             $sql = 'INSERT IGNORE INTO trade VALUES ';
             foreach ($this->batch as $ignored) {
                 $sql .= '(?, ?, ?, ?),';
