@@ -49,6 +49,7 @@ class FeedCommand extends Command
     {
         // define control queue
         $ch = $this->ch->bunny; // back-compat
+        $ch->exchangeDeclare(self::EXCHANGE, 'topic');
         $ch->exchangeDeclare('feed', 'topic');
         $ch->queueDelete(self::QUEUE);
         $ch->queueDeclare(self::QUEUE);
