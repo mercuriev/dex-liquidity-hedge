@@ -50,6 +50,7 @@ class MonitorInventoryCommand extends Command
                 $this->log->notice("$asset is available to borrow: $vol");
             }
             else {
+                $this->log->info("No $asset available.");
                 sleep(self::FREQUENCY);
                 // republish (no requeue) so that multiple assets queried in round-robin
                 $ch->publish($asset, 'monitor', 'inventory');
