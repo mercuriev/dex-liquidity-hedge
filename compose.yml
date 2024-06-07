@@ -48,6 +48,17 @@ services:
     volumes:
       - .:/srv
 
+  # on-demand notify user if asset is available to borrow
+  monitor-inventory:
+    image: hedge
+    container_name: monitor-inventory
+    build: .
+    command: ["monitor:inventory"]
+    depends_on:
+      - rabbitmq
+    volumes:
+      - .:/srv
+
   # record trades to database for backtesting
   db:
     depends_on:
