@@ -12,9 +12,7 @@ use Binance\Chart\Seconds;
 use Binance\Event\Trade;
 use Binance\MarketDataApi;
 use Bunny\Message;
-use Laminas\Log\Filter\Priority;
 use Laminas\Log\Logger;
-use Laminas\Log\Writer\AbstractWriter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -22,9 +20,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 final class HedgeCommand extends Command
 {
-    /** @var string Active running hedge consumer tag. */
-    private string $tag = '';
-
     private UnitaryHedge $hedge;
 
     public function __construct(protected readonly Logger            $log,
@@ -137,7 +132,7 @@ final class HedgeCommand extends Command
 
         if (isset($this->hedge)) {
             try {
-                ($this->hedge)($trade, $ch);
+                ($this->hedge)($trade);
             } catch (\Throwable $e) {
                 $this->log->err($e->getMessage()); // this goes to telegram
                 $this->log->debug($e);
