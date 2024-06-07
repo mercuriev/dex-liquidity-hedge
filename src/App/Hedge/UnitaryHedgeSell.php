@@ -3,7 +3,6 @@ namespace App\Hedge;
 
 use App\Binance\LimitMakerOrder;
 use Binance\Event\Trade;
-use Bunny\Channel;
 use function Binance\truncate;
 
 class UnitaryHedgeSell extends UnitaryHedge
