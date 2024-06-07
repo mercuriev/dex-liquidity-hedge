@@ -7,8 +7,6 @@ use function Binance\truncate;
 
 class UnitaryHedgeBuy extends UnitaryHedge
 {
-    private bool $ready = false; // when chart has enough data
-
     public function __invoke(Trade $trade) : void
     {
         parent::__invoke($trade);
@@ -22,7 +20,11 @@ class UnitaryHedgeBuy extends UnitaryHedge
         // BUY order: if there are no orders or just sold
         if (!isset($this->order) || ($this->order->isSell() && $this->order->isFilled()))
         {
-            if ($trade->price > $this->high)
+            if ($trade->price > $this->median
+                && $secEMA->now() > $this->median
+                && $secEMA->isAscending(10, 0.8)
+                && $minEMA->now() > $this->median
+            )
             {
                 // borrow at first trade and log once
                 $this->borrow();
@@ -43,7 +45,12 @@ class UnitaryHedgeBuy extends UnitaryHedge
         if (isset($this->order) && $this->order->isBuy() && $this->order->isFilled())
         {
             // price is rising and above median
-            if ($trade->price < $this->low)
+            if ($trade->price < $this->median
+                && $secEMA->now() < $this->median
+                && $secEMA->isDescending(10, 0.8)
+                && $minEMA->now() < $this->median
+                && $this->api->m->isBelow($this->median, 5)
+            )
             {
                 $flip = $this->flip($this->order);
                 if ($this->post($flip)) {
