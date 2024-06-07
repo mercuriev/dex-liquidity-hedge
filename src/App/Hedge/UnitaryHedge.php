@@ -56,7 +56,7 @@ abstract class UnitaryHedge
         register_shutdown_function([$this, 'shutdown']);
 
         // the price assets are traded for on DEX. On CEX this places opposite order for the price.
-        $this->median = round(($this->low + $this->high) / 2);
+        $this->median = round(($this->low + $this->high) / 2, 2);
         $this->log->notice(sprintf(
             '%s Range: %.2f - %.2f (%.2f%%) / Median: %.2f',
             $this->api->symbol,
