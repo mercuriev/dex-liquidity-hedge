@@ -85,7 +85,7 @@ final class HedgeCommand extends Command
                     return $ch->reject($msg,false);
                 }
 
-                list($symbol, $low, $high) = explode(' ', $msg->content);
+                [$symbol, $low, $high] = explode(' ', $msg->content);
                 try {
                     $this->loadApi($symbol);
                     $class = $msg->routingKey == 'sell' ? UnitaryHedgeSell::class : UnitaryHedgeBuy::class;

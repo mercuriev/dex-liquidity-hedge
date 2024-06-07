@@ -4,6 +4,7 @@ namespace App\Telegram;
 
 use Amqp\Channel;
 use App\Telegram\Callback\CancelCallbackHandler;
+use Bunny\Message;
 use Laminas\Db\Adapter\Adapter;
 use Laminas\Log\Logger;
 use Longman\TelegramBot\Commands\SystemCommands\CallbackqueryCommand;
@@ -75,7 +76,7 @@ class StartCommand extends Command
     private function listenToRabbit(): void
     {
         $tg = $this->tg;
-        $send = function (\Bunny\Message $message, \Bunny\Channel $channel) use ($tg) : void
+        $send = function (Message $message, \Bunny\Channel $channel) use ($tg) : void
         {
             $admins = $tg->getAdminList();
             foreach ($admins as $admin) {

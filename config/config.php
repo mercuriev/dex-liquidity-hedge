@@ -8,6 +8,7 @@ use Laminas\ConfigAggregator\ConfigAggregator;
 use Laminas\ConfigAggregator\PhpFileProvider;
 use Laminas\Log\Logger;
 use Laminas\Log\LoggerServiceFactory;
+use Laminas\ServiceManager\AbstractFactory\ReflectionBasedAbstractFactory;
 use Laminas\ServiceManager\Factory\AbstractFactoryInterface;
 use Laminas\ServiceManager\Proxy\LazyServiceFactory;
 
@@ -33,7 +34,7 @@ $aggregator = new ConfigAggregator([
                 },
 
                 // Enable container objects to be created by looking at construct parameters
-                \Laminas\ServiceManager\AbstractFactory\ReflectionBasedAbstractFactory::class,
+                ReflectionBasedAbstractFactory::class,
             ],
             'factories' => [
                 Logger::class => new class extends LoggerServiceFactory {

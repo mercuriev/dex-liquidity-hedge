@@ -116,15 +116,13 @@ abstract class Hedge extends \SplFixedArray
         /** @var StopOrder|LimitOrder $order */
         foreach ($this as $i => $order)
         {
-            if ($order->match($trade)) {
-                if ($order->isFilled()) {
-                    $this->log($i);
+            if ($order->match($trade) && $order->isFilled()) {
+                $this->log($i);
 
-                    $mirror = $this->filled($i);
+                $mirror = $this->filled($i);
 
-                    // log again that new order is POST'ed
-                    if ($mirror) $this->log($i);
-                }
+                // log again that new order is POST'ed
+                if ($mirror) $this->log($i);
             }
         }
 

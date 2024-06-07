@@ -7,7 +7,10 @@ use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\Update;
+use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\TelegramLog;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 class Telegram extends \Longman\TelegramBot\Telegram
 {
@@ -18,6 +21,9 @@ class Telegram extends \Longman\TelegramBot\Telegram
      *
      * @param ServiceManager $sm
      * @return static
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     * @throws TelegramException
      */
     static public function factory(ServiceManager $sm): self
     {
