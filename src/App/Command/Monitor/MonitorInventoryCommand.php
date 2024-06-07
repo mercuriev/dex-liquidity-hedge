@@ -36,7 +36,7 @@ class MonitorInventoryCommand extends Command
 
     public function __invoke(Message $msg, \Bunny\Channel $ch) : bool
     {
-        $asset = strtoupper($msg->content);
+        $asset = strtoupper(trim($msg->content));
         if (empty($asset)) {
             $this->log->info('Message body must be asset name only');
             return $ch->reject($msg, false);
