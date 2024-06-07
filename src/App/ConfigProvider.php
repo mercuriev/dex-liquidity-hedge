@@ -6,8 +6,9 @@ use App\Command\Cli\CancelCommand;
 use App\Command\Cli\SellCommand;
 use App\Command\DbCommand;
 use App\Command\FeedCommand;
-use App\Command\MonitorRangeCommand;
 use App\Command\HedgeCommand;
+use App\Command\Monitor\MonitorInventoryCommand;
+use App\Command\Monitor\MonitorRangeCommand;
 use App\Telegram\Action\BuyAction;
 use App\Telegram\Action\CancelAction;
 use App\Telegram\Action\SellAction;
@@ -30,6 +31,7 @@ class ConfigProvider
                 'buy'               => BuyCommand::class,
                 'cancel'            => CancelCommand::class,
                 'monitor:range'     => MonitorRangeCommand::class,
+                'monitor:inventory' => MonitorInventoryCommand::class,
                 'telegram:start'    => Telegram\StartCommand::class
             ],
             'feed' => [

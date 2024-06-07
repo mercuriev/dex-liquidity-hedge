@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Command;
+namespace App\Command\Monitor;
 
 use Amqp\Channel;
 use Binance\Event\Trade;
