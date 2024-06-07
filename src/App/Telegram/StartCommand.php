@@ -55,9 +55,14 @@ class StartCommand extends Command
         $this->log->debug('Polling telegram updates...');
         do {
             try {
-                $res = $this->tg->handleGetUpdates([
-                    'allowed_updates' => [Update::TYPE_MESSAGE, Update::TYPE_CALLBACK_QUERY]
+                $this->tg->handleGetUpdates([
+                    'allowed_updates' => [Update::TYPE_MESSAGE, Update::TYPE_CALLBACK_QUERY],
+                    'timeout' => 50 // long-polling. must be lower than amqp heartbeat (60s)
                 ]);
+
+                // keep this fork's channel open if handlers published
+                // so that they can publish to the same socket again
+                $this->channel->bunny->qos(0, 1);
             }
             catch (\Throwable $e) {
                 $this->log->err($e);
