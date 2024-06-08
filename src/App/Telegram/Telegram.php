@@ -6,7 +6,6 @@ use Longman\TelegramBot\Commands\AdminCommand;
 use Longman\TelegramBot\Commands\Command;
 use Longman\TelegramBot\Commands\SystemCommand;
 use Longman\TelegramBot\Commands\UserCommand;
-use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Exception\TelegramException;
 use Longman\TelegramBot\TelegramLog;
 use Psr\Container\ContainerExceptionInterface;
@@ -49,19 +48,8 @@ class Telegram extends \Longman\TelegramBot\Telegram
 
         $self->addCommandClasses($config['telegram']['handlers']);
         $self->enableAdmins($config['telegram']['admins'] ?? []);
-        $self->setUpdateFilter([$self, 'updateFilter']);
 
         return $self;
-    }
-
-    public function updateFilter(Update $u) : bool
-    {
-        $type = $u->getUpdateType();
-        $uid = match ($type) {
-            Update::TYPE_CALLBACK_QUERY => $u->getCallbackQuery()->getFrom()->getId(),
-            Update::TYPE_MESSAGE        => $u->getMessage()->getFrom()->getId()
-        };
-        return in_array($uid, $this->admins_list);
     }
 
     public function getCommandObject(string $command, string $filepath = ''): ?Command
