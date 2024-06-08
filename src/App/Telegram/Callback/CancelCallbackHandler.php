@@ -2,7 +2,6 @@
 
 namespace App\Telegram\Callback;
 
-use App\Telegram\Callback\AbstractCallbackHandler;
 use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\ServerResponse;
