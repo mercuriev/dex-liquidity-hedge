@@ -80,6 +80,7 @@
       <path value="$PROJECT_DIR$/vendor/laminas/laminas-servicemanager" />
       <path value="$PROJECT_DIR$/vendor/longman/telegram-bot" />
       <path value="$PROJECT_DIR$/vendor/composer" />
+      <path value="$PROJECT_DIR$/vendor/web3promax/binance" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
