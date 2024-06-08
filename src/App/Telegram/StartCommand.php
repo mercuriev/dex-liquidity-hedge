@@ -34,36 +34,26 @@ class StartCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output) : int
     {
-        $this->log->info('Started telegram bot.');
-
         TelegramLog::initialize($this->log);
         CallbackqueryCommand::addCallbackHandler(new CancelCallbackHandler());
 
-        $pid = pcntl_fork();
-        if ($pid == -1) throw new \RuntimeException('Forking failed.');
-        else if ($pid) {
-            $this->listenToTelegram();
-        }
-        else {
-            $this->listenToRabbit();
-        }
+        $this->channel->queueDeclare('telegram');
+        $this->channel->bind('telegram', 'log', [], '*');
 
-        return 100; // restart
-    }
-
-    private function listenToTelegram() : void
-    {
         $this->log->debug('Polling telegram updates...');
         do {
             try {
                 $this->tg->handleGetUpdates([
                     'allowed_updates' => [Update::TYPE_MESSAGE, Update::TYPE_CALLBACK_QUERY],
-                    'timeout' => 50 // long-polling. must be lower than amqp heartbeat (60s)
+                    'timeout' => 5 // long-polling. must be lower than amqp heartbeat (60s), but small enough to let logging
                 ]);
 
-                // keep this fork's channel open if handlers published
-                // so that they can publish to the same socket again
-                $this->channel->bunny->qos(0, 1);
+                do {
+                    $msg = $this->channel->bunny->get('telegram');
+                    if ($msg) {
+                        $this->sendLogMessage($msg, $this->channel->bunny);
+                    }
+                } while ($msg);
             }
             catch (\Throwable $e) {
                 $this->log->err($e);
@@ -71,29 +61,19 @@ class StartCommand extends Command
             }
         }
         while(!sleep(1));
+
+        return 100; // restart
     }
 
-    private function listenToRabbit(): void
+    private function sendLogMessage(Message $message, \Bunny\Channel $channel): void
     {
-        $tg = $this->tg;
-        $send = function (Message $message, \Bunny\Channel $channel) use ($tg) : void
-        {
-            $admins = $tg->getAdminList();
-            foreach ($admins as $admin) {
-                Request::sendMessage([
-                    'chat_id' => $admin,
-                    'text' => $message->content
-                ]);
-            }
-            $channel->ack($message);
-        };
-
-        $this->channel->queueDeclare('telegram');
-        $this->channel->bind('telegram', 'log', [], '*');
-        $this->channel->bunny->consume($send, 'telegram');
-        $this->channel->bunny->qos(0, 1);
-
-        $this->log->debug('Listening to AMQP...');
-        $this->channel->run();
+        $admins = $this->tg->getAdminList();
+        foreach ($admins as $admin) {
+            Request::sendMessage([
+                'chat_id' => $admin,
+                'text' => $message->content
+            ]);
+        }
+        $channel->ack($message);
     }
 }
