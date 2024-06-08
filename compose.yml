@@ -94,3 +94,12 @@ services:
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
+
+  # dummy service just to build php and run dev tools in it
+  php:
+    build: .
+    image: hedge
+    container_name: php
+    volumes:
+      - .:/srv
+    command: ["list"]
