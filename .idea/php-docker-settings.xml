@@ -11,8 +11,12 @@
               <option name="volumeBindings">
                 <list>
                   <DockerVolumeBindingImpl>
-                    <option name="containerPath" value="/srv" />
+                    <option name="containerPath" value="/app" />
                     <option name="hostPath" value="$PROJECT_DIR$" />
+                  </DockerVolumeBindingImpl>
+                  <DockerVolumeBindingImpl>
+                    <option name="containerPath" value="/tmp" />
+                    <option name="hostPath" value="$USER_HOME$/.config/composer" />
                   </DockerVolumeBindingImpl>
                 </list>
               </option>
