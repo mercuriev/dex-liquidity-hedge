@@ -18,7 +18,8 @@ abstract class UnitaryHedge
 
     protected float $median; // order entry / exit price
     protected float $fee = 0.0001; // median price offset
-    protected int $precision; // base asset precision for rounding
+    protected int $lotPrecision; // base asset precision for rounding
+    protected int $pricePrecision;
     protected int $lastPost; // timestamp of last API request for order. Used for rate limit.
 
     /**
@@ -58,10 +59,12 @@ abstract class UnitaryHedge
         // precision of base asset's quantity
         $info = $this->api->exchangeInfo();
         $step = $info->getFilter($this->api->symbol, 'LOT_SIZE')['stepSize'];
-        $this->precision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
+        $this->lotPrecision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
+        $step = $info->getFilter($this->api->symbol, 'PRICE_FILTER')['tickSize'];
+        $this->pricePrecision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
 
         // the price assets are traded for on DEX. On CEX this places opposite order for the price.
-        $this->median = round(($this->low + $this->high) / 2, $this->precision);
+        $this->median = round(($this->low + $this->high) / 2, $this->pricePrecision);
         $this->log->notice(sprintf(
             '%s Range: %.2f - %.2f (%.2f%%) / Median: %.2f',
             $this->api->symbol,
