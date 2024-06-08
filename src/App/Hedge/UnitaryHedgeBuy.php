@@ -33,8 +33,8 @@ class UnitaryHedgeBuy extends UnitaryHedge
                 $order = new LimitMakerOrder();
                 $order->symbol = $this->api->symbol;
                 $order->side = 'BUY';
-                $order->price = round($this->median * (1 - $this->fee), 2);
-                $order->quantity = truncate($this->account->quoteAsset->free / $order->price, $this->precision);
+                $order->price = round($this->median * (1 - $this->fee), $this->pricePrecision);
+                $order->quantity = truncate($this->account->quoteAsset->free / $order->price, $this->lotPrecision);
                 if ($this->post($order)) {
                     $this->log($this->order);
                 }
