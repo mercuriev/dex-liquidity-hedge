@@ -55,8 +55,13 @@ abstract class UnitaryHedge
 
         register_shutdown_function([$this, 'shutdown']);
 
+        // precision of base asset's quantity
+        $info = $this->api->exchangeInfo();
+        $step = $info->getFilter($this->api->symbol, 'LOT_SIZE')['stepSize'];
+        $this->precision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
+
         // the price assets are traded for on DEX. On CEX this places opposite order for the price.
-        $this->median = round(($this->low + $this->high) / 2, 2);
+        $this->median = round(($this->low + $this->high) / 2, $this->precision);
         $this->log->notice(sprintf(
             '%s Range: %.2f - %.2f (%.2f%%) / Median: %.2f',
             $this->api->symbol,
@@ -74,11 +79,6 @@ abstract class UnitaryHedge
         if ($quote < 10) {
             throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
         }
-
-        // precision of base asset's quantity
-        $info = $this->api->exchangeInfo();
-        $step = $info->getFilter($this->api->symbol, 'LOT_SIZE')['stepSize'];
-        $this->precision = strlen($step) - strlen(ltrim($step, '0.')) - 1;
     }
 
     /**
