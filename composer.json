@@ -7,11 +7,11 @@
     "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
     "bunny/bunny": "dev-master",
-    "symfony/console": "^v7.0.4",
-    "laminas/laminas-servicemanager": "^3.21",
+    "symfony/console": "^v7.1.1",
+    "laminas/laminas-servicemanager": "^3.22.1",
     "friendsofphp/proxy-manager-lts": "^v1.0.18",
-    "laminas/laminas-config-aggregator": "^1.14",
-    "laminas/laminas-db": ">=2.20.0",
+    "laminas/laminas-config-aggregator": "^1.15.0",
+    "laminas/laminas-db": "^2.21",
     "longman/telegram-bot": "^0.82.0"
   },
   "require-dev": {
