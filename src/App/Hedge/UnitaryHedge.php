@@ -8,7 +8,6 @@ use Binance\Event\Trade;
 use Binance\Exception\BinanceException;
 use Binance\Exception\ExceedBorrowable;
 use Binance\Order\AbstractOrder;
-use Bunny\Channel;
 use Laminas\Log\Logger;
 
 abstract class UnitaryHedge

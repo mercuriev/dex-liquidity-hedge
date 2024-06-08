@@ -4,7 +4,6 @@ namespace App\Telegram\Action;
 
 use App\Telegram\Conversation\HedgeConversation;
 use App\Telegram\Handler\AbstractHandler;
-use Longman\TelegramBot\Conversation;
 use Longman\TelegramBot\Entities\ServerResponse;
 
 abstract class AbstractHedgeAction extends AbstractHandler

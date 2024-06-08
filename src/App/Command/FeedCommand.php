@@ -2,7 +2,6 @@
 namespace App\Command;
 
 use Amqp\Channel;
-use Amqp\Message;
 use Binance\Event\Trade;
 use Binance\WebsocketsApi;
 use Laminas\Log\Logger;
