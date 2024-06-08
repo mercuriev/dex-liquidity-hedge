@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="monitor-inventory" type="PhpLocalRunConfigurationType" factoryName="PHP Console" focusToolWindowBeforeRun="true" path="$PROJECT_DIR$/cli.php" scriptParameters="monitor:inventory">
+    <CommandLine>
+      <PhpTestInterpreterSettings>
+        <option name="interpreterName" value="docker" />
+      </PhpTestInterpreterSettings>
+    </CommandLine>
+    <method v="2" />
+  </configuration>
+</component>

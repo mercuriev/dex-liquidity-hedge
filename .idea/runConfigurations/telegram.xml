@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="telegram" type="PhpLocalRunConfigurationType" factoryName="PHP Console" focusToolWindowBeforeRun="true" path="$PROJECT_DIR$/cli.php" scriptParameters="telegram:start">
+    <CommandLine>
+      <PhpTestInterpreterSettings>
+        <option name="interpreterName" value="docker" />
+      </PhpTestInterpreterSettings>
+      <envs>
+        <env name="PHP_IDE_CONFIG" value="serverName=docker" />
+      </envs>
+    </CommandLine>
+    <method v="2" />
+  </configuration>
+</component>

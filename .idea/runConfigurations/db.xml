@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="db" type="PhpLocalRunConfigurationType" factoryName="PHP Console" focusToolWindowBeforeRun="true" path="$PROJECT_DIR$/cli.php" scriptParameters="db">
+    <CommandLine>
+      <PhpTestInterpreterSettings>
+        <option name="interpreterName" value="docker" />
+      </PhpTestInterpreterSettings>
+    </CommandLine>
+    <method v="2" />
+  </configuration>
+</component>
