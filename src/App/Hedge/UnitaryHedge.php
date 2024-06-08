@@ -74,10 +74,7 @@ abstract class UnitaryHedge
 
         // fetch account assets and display it
         $this->account = $this->api->getAccount($this->api->symbol);
-        $this->log->notice(sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
-            $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
-            $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed,
-        ));
+        $this->logAccountBalance();
         $this->log->notice(sprintf('Total quote with borrowable: %.2f', $quote = $this->getTotalQuoteValue()));
         if ($quote < 10) {
             throw new \RuntimeException('Empty balance in margin ' . $this->api->symbol);
@@ -93,8 +90,9 @@ abstract class UnitaryHedge
         if (isset($this->order) && !$this->order->isFilled()) {
             $this->order->match($trade);
             if ($this->order->isFilled()) {
-                $this->account = $this->api->getAccount($this->api->symbol);
                 $this->log($this->order);
+                $this->account = $this->api->getAccount($this->api->symbol);
+                $this->logAccountBalance();
             }
         }
     }
@@ -206,6 +204,15 @@ abstract class UnitaryHedge
         $msg .= sprintf(' / %.2f <-> %.5f', $this->account->quoteAsset->totalAsset, $this->account->baseAsset->totalAsset);
         $this->log->notice($msg);
     }
+
+    private function logAccountBalance(): void
+    {
+        $this->log->notice(sprintf('%s: %.5f (%.5f). %s: %.2f (%.2f)',
+            $this->account->baseAsset->asset, $this->account->baseAsset->free, $this->account->baseAsset->borrowed,
+            $this->account->quoteAsset->asset, $this->account->quoteAsset->free, $this->account->quoteAsset->borrowed
+        ));
+    }
+
 
     /**
      * The destructor for the UnitaryHedge class.
