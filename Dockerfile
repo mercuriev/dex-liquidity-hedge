@@ -1,4 +1,4 @@
-FROM php:8.2-cli
+FROM php:8.3-cli
 
 # zip is required by composer
 RUN apt-get update && apt-get install -y git zlib1g-dev libzip-dev libxml2-dev zip \
