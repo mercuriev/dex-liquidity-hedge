@@ -5,7 +5,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/App" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/Trader" isTestSource="false" packagePrefix="Trader\" />
-      <sourceFolder url="file://$MODULE_DIR$/vendor/mercuriev/binance" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/vendor/mercuriev/binance/src" isTestSource="false" packagePrefix="Binance\" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/brick/varexporter" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/laminas/laminas-config-aggregator" />
