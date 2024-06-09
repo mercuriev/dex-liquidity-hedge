@@ -4,6 +4,7 @@
     "php": ">=8.3",
     "ext-pcntl": "*",
     "ext-pdo": "*",
+    "ext-bcmath": "*",
     "bunny/bunny": "dev-master",
     "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
