@@ -19,9 +19,9 @@ use WebSocket\TimeoutException;
  */
 class FeedCommand extends Command
 {
-    public const EXCHANGE = 'binance';
-    private const TIMEOUT = 45;  // timeout must be high because there might be just no trades happening
-    public const QUEUE = 'feed';
+    public const string EXCHANGE = 'binance';
+    private const int TIMEOUT = 50;  // timeout must be high because there might be just no trades happening, but less than amqp heartbeat
+    public const string QUEUE = 'feed';
 
     private Client $ws;
     private int $id = 0;
@@ -88,16 +88,17 @@ class FeedCommand extends Command
                         default: continue 2;
                     }
 
-                    // publish
-                    $this->ch->bunny->publish(
+                    $ch->publish(
                         serialize($payload),
                         self::EXCHANGE,
                         strtolower("trade.{$payload['s']}")
                     );
                 }
                 catch (TimeoutException $e) {
-                    $this->log->err('feed: '.$e->getMessage());
-                    break;
+                    if (!$this->ws->isConnected()) {
+                        $this->log->err('feed: '.$e->getMessage());
+                        break; // restart
+                    }
                 }
             }
             else {
@@ -107,7 +108,7 @@ class FeedCommand extends Command
         }
         while (true);
 
-        return 100; // Disconnected. Restart by supervisor
+        return 100; // Disconnected. Restart by compose
     }
 
     private function subscribe(string $symbol, bool $unsub = false) : void
