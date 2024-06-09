@@ -10,6 +10,7 @@ $callShutdown = function () { exit(0); };
 pcntl_signal(SIGINT, $callShutdown);
 pcntl_signal(SIGTERM, $callShutdown);
 
+global $container;
 $container = require 'config/container.php';
 
 $app = new Application();
