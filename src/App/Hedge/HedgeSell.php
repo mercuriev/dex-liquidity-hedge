@@ -88,7 +88,7 @@ class HedgeSell extends Hedge
         return null;
     }
 
-    protected function above(float $price)
+    protected function above(float $price): void
     {
         if ($price > $this->max + $this->step) {
             if ('SELL' == $this[0]->side && $this[0]->isFilled()) {
@@ -99,7 +99,7 @@ class HedgeSell extends Hedge
         }
     }
 
-    protected function below(float $price)
+    protected function below(float $price): void
     {
         if ($price < $this->min - $this->step) {
             $last = $this[count($this) - 1];

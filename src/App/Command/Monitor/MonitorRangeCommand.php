@@ -12,8 +12,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class MonitorRangeCommand extends Command
 {
-    public const QUEUE_NAME = 'monitor-range';
-    public const FREQ = 60; // check every FREQ seconds
+    public const string QUEUE_NAME = 'monitor-range';
+    public const int FREQ = 60; // check every FREQ seconds
     private int $last;
 
     // symbol => [$low, $high, $status]

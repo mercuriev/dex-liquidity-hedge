@@ -15,8 +15,8 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class MonitorInventoryCommand extends Command
 {
-    public const QUEUE_NAME = 'monitor-inventory';
-    public const FREQUENCY = 40; // less than heartbeat
+    public const string QUEUE_NAME = 'monitor-inventory';
+    public const int FREQUENCY = 40; // less than heartbeat
 
     public function getName(): string { return 'monitor:inventory'; }
 

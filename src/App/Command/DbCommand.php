@@ -1,14 +1,14 @@
 <?php
 namespace App\Command;
 
+use Amqp\Channel;
 use Binance\Event\Trade;
 use Bunny\Message;
+use Laminas\Db\Adapter\Adapter;
+use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Amqp\Channel;
-use Laminas\Db\Adapter\Adapter;
-use Laminas\Log\Logger;
 
 /**
  * Persist trades to db.
@@ -19,7 +19,7 @@ class DbCommand extends Command
     private Logger $log;
     private Channel $ch;
 
-    public const BATCH_SIZE = 50;
+    public const int BATCH_SIZE = 50;
     private array $batch = [];
 
     public function getName(): string
