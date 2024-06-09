@@ -24,6 +24,7 @@ class FeedCommand extends Command
     public const string QUEUE = 'feed';
 
     private Client $ws;
+    private array $subs = []; // binance reset connection if sub for the same symbol is sent multiple times
     private int $id = 0;
     private int $lastGet = 0;
 
@@ -113,6 +114,8 @@ class FeedCommand extends Command
 
     private function subscribe(string $symbol, bool $unsub = false) : void
     {
+        if (!$unsub && in_array($symbol, $this->subs)) return;
+
         if (!isset($this->ws)) {
             $this->ws = new Client('wss://stream.binance.com:9443/ws/bookTicker', [
                 'timeout' => self::TIMEOUT,
@@ -127,6 +130,9 @@ class FeedCommand extends Command
         ];
         $this->ws->send(json_encode($payload, JSON_THROW_ON_ERROR));
 
+        if (!$unsub) {
+            $this->subs[] = $symbol;
+        }
         $msg = $unsub ? 'Canceled' : 'Subscribed to';
         $this->log->debug("$msg {$payload['params'][0]}");
     }
@@ -134,6 +140,11 @@ class FeedCommand extends Command
     private function unsubscribe(string $symbol) : void
     {
         $this->subscribe($symbol, true);
+
+        $key = array_search($symbol, $this->subs);
+        if ($key !== false) {
+            unset($this->subs[$key]);
+        }
     }
 
     private function processMessage(\Bunny\Message $msg) : void
