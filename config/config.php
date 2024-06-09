@@ -16,6 +16,7 @@ $aggregator = new ConfigAggregator([
     \Laminas\Log\ConfigProvider::class,
     \App\ConfigProvider::class,
     \Laminas\Db\ConfigProvider::class,
+    \Trader\ConfigProvider::class,
 
     new ArrayProvider([
         'dependencies' => [
