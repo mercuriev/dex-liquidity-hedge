@@ -48,17 +48,29 @@ class Trader
     public function __invoke(Trade $trade): bool
     {
         $this->chart->append($trade);
-        $this->matchOurOrders($trade);
-
-        return true;
-    }
-
-    private function matchOurOrders(Trade $trade): void
-    {
         if (isset($this->deal)) {
             $this->deal->orderIn?->match($trade);
             $this->deal->orderOut?->match($trade);
         }
+
+        // take action every second and minute
+        if (1 == count($this->chart->s[0])) {
+            $this->second($trade);
+            if (1 == count($this->chart->m[0])) {
+                $this->minute($trade);
+            }
+        }
+
+        return true;
+    }
+
+
+    protected function second(Trade $trade): void
+    {
+    }
+
+    protected function minute(Trade $trade): void
+    {
     }
 
     private function loadActiveDeal(): ?Deal
