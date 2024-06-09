@@ -51,7 +51,7 @@ class ConfigProvider
             'db' => [
                 'driver' => 'Pdo_Mysql',
                 'hostname' => 'mysql',
-                'database' => 'hedgehog',
+                'database' => @$_ENV['COMPOSE_PROJECT_NAME'] ?? 'hedgehog',
                 'username' => 'root',
                 'password' => '',
                 'driver_options' => array(
