@@ -4,11 +4,11 @@
     "php": ">=8.3",
     "ext-pcntl": "*",
     "ext-pdo": "*",
+    "bunny/bunny": "dev-master",
     "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
-    "bunny/bunny": "dev-master",
+    "laminas/laminas-servicemanager": "3.23.x-dev",
     "symfony/console": "^v7.1.1",
-    "laminas/laminas-servicemanager": "^3.22.1",
     "friendsofphp/proxy-manager-lts": "^v1.0.18",
     "laminas/laminas-config-aggregator": "^1.15.0",
     "laminas/laminas-db": "^2.21",
@@ -33,12 +33,16 @@
     {
       "type": "git",
       "url": "https://github.com/mercuriev/laminas-db.git"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/mercuriev/laminas-servicemanager.git"
     }
   ],
   "autoload": {
     "psr-4": {
       "App\\": "src/App",
-      "AppTest\\": "tests/AppTest"
+      "Trader\\": "src/Trader"
     }
   }
 }
