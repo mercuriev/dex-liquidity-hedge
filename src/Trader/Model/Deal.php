@@ -21,8 +21,8 @@ use Laminas\Db\Sql\Sql;
 class Deal extends RowGateway
 {
     #public AbstractStrategy $strategy;
-    public ?AbstractOrder $orderIn = null;
-    public ?AbstractOrder $orderOut = null;
+    public ?AbstractOrder $entry = null;
+    public ?AbstractOrder $exit = null;
 
     public function __construct(Adapter $adapterOrSql = null)
     {
@@ -38,21 +38,21 @@ class Deal extends RowGateway
 
     public function save()
     {
-        $this->id = $this->orderOut ? $this->orderOut->getId() : $this->orderIn->getId();
+        $this->id = $this->exit ? $this->exit->getId() : $this->entry->getId();
 
         #$this->data['strategy'] = serialize($this->strategy);
-        $this->data['orderIn'] = serialize($this->orderIn);
-        if ($this->orderOut) {
-            $this->data['orderOut'] = serialize($this->orderOut);
+        $this->data['orderIn'] = serialize($this->entry);
+        if ($this->exit) {
+            $this->data['orderOut'] = serialize($this->exit);
         }
         return parent::save();
     }
 
     public function populate(array $rowData, $rowExistsInDatabase = false)
     {
-        $this->orderIn = unserialize($rowData['orderIn']);
+        $this->entry = unserialize($rowData['orderIn']);
         if ($rowData['orderOut']) {
-            $this->orderOut = unserialize($rowData['orderOut']);
+            $this->exit = unserialize($rowData['orderOut']);
         }
         #$this->strategy = unserialize($rowData['strategy']);
         return parent::populate($rowData, $rowExistsInDatabase);
@@ -60,10 +60,10 @@ class Deal extends RowGateway
 
     public function getProfit() : float
     {
-        if (!$this->orderOut) throw new \RuntimeException('Deal is not finished.');
+        if (!$this->exit) throw new \RuntimeException('Deal is not finished.');
 
-        $in = $this->orderIn->getExecutedAmount();
-        $out = $this->orderOut->getExecutedAmount();
+        $in = $this->entry->getExecutedAmount();
+        $out = $this->exit->getExecutedAmount();
 
         return round($out - $in, 2);
     }
