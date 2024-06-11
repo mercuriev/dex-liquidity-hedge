@@ -41,18 +41,18 @@ class Deal extends RowGateway
         $this->id = $this->exit ? $this->exit->getId() : $this->entry->getId();
 
         #$this->data['strategy'] = serialize($this->strategy);
-        $this->data['orderIn'] = serialize($this->entry);
+        $this->data['entry'] = serialize($this->entry);
         if ($this->exit) {
-            $this->data['orderOut'] = serialize($this->exit);
+            $this->data['exit'] = serialize($this->exit);
         }
         return parent::save();
     }
 
     public function populate(array $rowData, $rowExistsInDatabase = false)
     {
-        $this->entry = unserialize($rowData['orderIn']);
-        if ($rowData['orderOut']) {
-            $this->exit = unserialize($rowData['orderOut']);
+        $this->entry = unserialize($rowData['entry']);
+        if ($rowData['exit']) {
+            $this->exit = unserialize($rowData['exit']);
         }
         #$this->strategy = unserialize($rowData['strategy']);
         return parent::populate($rowData, $rowExistsInDatabase);
