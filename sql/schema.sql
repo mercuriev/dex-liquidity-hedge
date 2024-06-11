@@ -27,6 +27,7 @@ SET character_set_client = @saved_cs_client;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `deal` (
   `id` varchar(30) NOT NULL,
+  `symbol` varchar(16) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
   `side` enum('bull','bear') CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `status` varchar(16) CHARACTER SET ascii COLLATE ascii_general_ci NOT NULL DEFAULT 'NEW',
@@ -36,7 +37,8 @@ CREATE TABLE `deal` (
   `orderOut` text,
   PRIMARY KEY (`id`),
   KEY `timestamp_2` (`timestamp`,`status`(1)),
-  KEY `side` (`side`)
+  KEY `side` (`side`),
+  KEY `deal_symbol_index` (`symbol`)
 ) ENGINE=MyISAM DEFAULT CHARSET=ascii;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
