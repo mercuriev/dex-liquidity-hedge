@@ -66,8 +66,8 @@ class BacktestCommand extends Command
                 'id'            => $row[0],
                 'price'         => $row[1],
                 'qty'           => $row[2],
-                'time'          => $row[3],
-                'isBuyerMaker'  => $row[4],
+                'time'          => $row[4],
+                'isBuyerMaker'  => $row[5],
             ];
             $trade = Trade::fromHistorical($trade);
 
