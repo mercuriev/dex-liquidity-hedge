@@ -89,8 +89,7 @@ services:
       - 127.0.0.1:3306:3306
     volumes:
       - mysql:/var/lib/mysql
-      - ./schema.sql:/docker-entrypoint-initdb.d/hedge.sql:ro
-      - ./telegram.sql:/docker-entrypoint-initdb.d/telegram.sql:ro
+      - ./sql:/docker-entrypoint-initdb.d:ro
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: ${COMPOSE_PROJECT_NAME}
