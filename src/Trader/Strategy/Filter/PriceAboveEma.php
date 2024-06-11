@@ -1,15 +1,23 @@
 <?php
 namespace Trader\Strategy\Filter;
 
-class PriceAboveEma
-{
-    public function __construct(private int $emaPeriod, private int $lookbackPeriod) {}
+use Binance\Chart\AbstractChart;
+use Trader\Model\Deal;
 
-    public function __invoke($chart)
+readonly class PriceAboveEma
+{
+    public function __construct(
+        private AbstractChart $chart, // minutes or seconds
+        private int $emaPeriod,
+        private int $lookbackPeriod
+    ) {}
+
+    public function __invoke(Deal $deal)
     {
-        $ema = $chart->s->ema($this->emaPeriod);
-        if ($chart->s->isAbove($ema, $this->lookbackPeriod))
-            return $chart;
-        else return null;
+        $ema = $this->chart->ema($this->emaPeriod);
+        if ($this->chart->isAbove($ema, $this->lookbackPeriod))
+            return $deal;
+        else
+            return false;
     }
 }

@@ -2,6 +2,7 @@
 namespace Trader\Strategy\Filter;
 
 use Binance\Chart\AbstractChart;
+use Trader\Model\Deal;
 
 readonly class PriceBetweenBoll
 {
@@ -14,11 +15,11 @@ readonly class PriceBetweenBoll
     {
     }
 
-    public function __invoke($order)
+    public function __invoke(Deal $deal)
     {
         $min = $this->chart->boll($this->period, $this->minMp)[0][2];
         $max = $this->chart->boll($this->period, $this->maxMp)[0][0];
         $now = $this->chart->now();
-        return [($now >= $min && $now <= $max) ? $order : false];
+        return ($now >= $min && $now <= $max) ? $deal : false;
     }
 }

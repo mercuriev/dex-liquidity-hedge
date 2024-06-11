@@ -2,21 +2,20 @@
 namespace Trader\Strategy\Filter;
 
 use Binance\Chart\AbstractChart;
+use Trader\Model\Deal;
 
-class PriceBelowEma
+readonly class PriceBelowEma
 {
     public function __construct(
-        private readonly AbstractChart $chart, // minutes or seconds
-        private readonly int $emaPeriod,
-        private readonly int $lookbackPeriod
+        private AbstractChart $chart, // minutes or seconds
+        private int           $emaPeriod,
+        private int           $lookbackPeriod
     )
     {}
 
-    public function __invoke($order)
+    public function __invoke(Deal $deal)
     {
-        if (!$order) return [null];
-
         $ema = $this->chart->ema($this->emaPeriod);
-        return [($this->chart->isBelow($ema, $this->lookbackPeriod)) ? $order : null];
+        return ($this->chart->isBelow($ema, $this->lookbackPeriod)) ? $deal : false;
     }
 }

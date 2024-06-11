@@ -16,6 +16,6 @@ readonly class RsiBetween
     public function __invoke(Deal $deal)
     {
         $rsi = $this->chart->rsi($this->period)[0];
-        return [($rsi >= $this->min && $rsi <= $this->max) ? $deal : false];
+        return ($rsi >= $this->min && $rsi <= $this->max) ? $deal : false;
     }
 }
