@@ -1,9 +1,9 @@
 <?php
-
-namespace Trader;
+namespace Trader\Command;
 
 use Amqp\Channel;
 use App\Command\FeedCommand;
+use Binance\Chart\Chart;
 use Bunny\Message;
 use Laminas\Log\Logger;
 use Symfony\Component\Console\Command\Command;
@@ -11,6 +11,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Trader\Trader;
 
 /**
  * 1. Build Trader based on provided startup options.
@@ -37,13 +38,17 @@ class TraderCommand extends Command
         $symbol = strtoupper($input->getArgument('symbol'));
         $strategy = $input->getOption('strategy');
 
+        // dispatch trades
+        $this->declareQueueAndBindToTrades($symbol);
+
+        // Fetch chart from API/DB (must be after queue consume so that Trades are not lost while AMQP is starting)
+        $chart = Chart::buildWithHistory($symbol);
+        $GLOBALS['container']->setFactory(Chart::class, fn() => $chart);
+
         $trader = $GLOBALS['container']->build(Trader::class, [
             'symbol' => $symbol,
             'strategy' => $strategy,
         ]);
-
-        // dispatch trades
-        $this->declareQueueAndBindToTrades($symbol);
         $this->ch->bunny->consume(function (Message $msg, \Bunny\Channel $ch) use ($trader) {
             $trade = unserialize($msg->content);
             $trader($trade);

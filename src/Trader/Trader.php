@@ -29,7 +29,6 @@ class Trader
 {
     public const string ORDER_PREFIX = 'bot';
 
-    protected readonly Chart $chart;
     protected Account $account;
     protected ?Deal $deal;
 
@@ -44,6 +43,7 @@ class Trader
         protected Logger $log,
         protected Adapter $db,
         protected SpotApi $api,
+        protected Chart $chart,
         array $options
     )
     {
@@ -59,9 +59,6 @@ class Trader
         // recover state
         $this->deal = $this->loadActiveDeal();
         $this->api->cancelAll(static::ORDER_PREFIX); // TODO can we continue without cancel?
-
-        // Fetch chart from API/DB (must be after queue consume so that Trades are not lost while AMQP is starting)
-        $this->chart = Chart::buildWithHistory($symbol);
 
         $this->buildStrategies();
     }
