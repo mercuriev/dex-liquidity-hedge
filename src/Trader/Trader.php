@@ -4,6 +4,8 @@ namespace Trader;
 use Binance\Account\Account;
 use Binance\Chart\Chart;
 use Binance\Event\Trade;
+use Binance\Exception\BinanceException;
+use Binance\Order\AbstractOrder;
 use Binance\Order\LimitMakerOrder;
 use Binance\SpotApi;
 use Laminas\Db\Adapter\Adapter;
@@ -11,7 +13,6 @@ use Laminas\Log\Logger;
 use Trader\Model\Deal;
 use Trader\Strategy\Filter\PriceBelowEma;
 use Trader\Strategy\Filter\PriceBetweenBoll;
-use Trader\Strategy\Filter\RsiBelow;
 use Trader\Strategy\Filter\RsiBetween;
 use Trader\Strategy\Pipeline;
 
@@ -50,14 +51,16 @@ class Trader
         $this->api->symbol = $symbol = $options['symbol'];
 
         $this->account  = $this->api->getAccount();
-        foreach ($this->account->balances as $balance) {
-            if (str_contains($symbol, $balance['asset'])) {
-                $this->log->info(sprintf('%s balance: %.8f / %.8f', $balance['asset'], $balance['free'], $balance['locked']));
-            }
-        }
+        $this->account->selectAssetsFor($symbol);
+        $this->log->info(sprintf(
+            '%s balance: %.8f / %.8f',
+            $symbol,
+            $this->account->quoteAsset->free,
+            $this->account->baseAsset->free
+        ));
 
         // recover state
-        $this->deal = $this->loadActiveDeal();
+        $this->deal = $this->loadActiveDeal() ?? new Deal($this->db);
         $this->api->cancelAll(static::ORDER_PREFIX); // TODO can we continue without cancel?
 
         $this->buildStrategies();
@@ -84,8 +87,42 @@ class Trader
 
     protected function second(Trade $trade): void
     {
-        $deal = ($this->enterStrategy)($this->deal ?? new Deal($this->db));
-        // check if new deal for entry or exit was set
+        // entry orders
+        if (!$this->deal->entry) {
+            $deal = ($this->enterStrategy)($this->deal);
+            if ($deal && $deal->entry instanceof AbstractOrder) {
+                try {
+                    $deal->entry = $this->api->post($deal->entry);
+                    $deal->save();
+                    return; // one request per second
+                }
+                catch (BinanceException $e) {}
+            }
+            else return; // no entry at this time
+        }
+
+        // exit orders
+        elseif ($this->deal->entry->isFilled() && !$this->deal?->exit->isFilled()) {
+            $deal = ($this->exitStrategy)($this->deal);
+            if ($deal && $deal->exit instanceof AbstractOrder) {
+                try {
+                    // TODO replace
+                    $deal->exit = $this->api->post($deal->exit);
+                    $deal->save();
+                    return; // one request per second
+                }
+                catch (BinanceException $e) {}
+            }
+            else return; // no exit at this time
+        }
+
+        // complete deal
+        elseif ($this->deal->exit->isFilled()) {
+            $this->deal->save();
+            $this->deal = null;
+        }
+
+        else throw new \RuntimeException('unreachable');
     }
 
     protected function minute(Trade $trade): void
