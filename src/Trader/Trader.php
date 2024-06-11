@@ -11,10 +11,10 @@ use Binance\SpotApi;
 use Laminas\Db\Adapter\Adapter;
 use Laminas\Log\Logger;
 use Trader\Model\Deal;
-use Trader\Strategy\Filter\PriceBelowEma;
 use Trader\Strategy\Filter\PriceBetweenBoll;
 use Trader\Strategy\Filter\RsiBetween;
 use Trader\Strategy\Pipeline;
+use function Binance\truncate;
 
 /**
  * Tracks account balances and current orders/deals.
@@ -61,6 +61,7 @@ class Trader
 
         // recover state
         $this->deal = $this->loadActiveDeal() ?? new Deal($this->db);
+        $this->deal->symbol ??= $symbol;
         $this->api->cancelAll(static::ORDER_PREFIX); // TODO can we continue without cancel?
 
         $this->buildStrategies();
@@ -102,7 +103,7 @@ class Trader
         }
 
         // exit orders
-        elseif ($this->deal->entry->isFilled() && !$this->deal?->exit->isFilled()) {
+        elseif ($this->deal->entry->isFilled() && !$this->deal?->exit?->isFilled()) {
             $deal = ($this->exitStrategy)($this->deal);
             if ($deal && $deal->exit instanceof AbstractOrder) {
                 try {
