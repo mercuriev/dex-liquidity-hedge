@@ -114,6 +114,7 @@ class FeedCommand extends Command
 
     private function subscribe(string $symbol, bool $unsub = false) : void
     {
+        $symbol = strtolower($symbol);
         if (!$unsub && in_array($symbol, $this->subs)) return;
 
         if (!isset($this->ws)) {
@@ -126,7 +127,7 @@ class FeedCommand extends Command
         $payload = [
             'id' => ++$this->id,
             'method' => $unsub ? 'UNSUBSCRIBE' : 'SUBSCRIBE',
-            'params' => [strtolower($symbol) . '@trade']
+            'params' => ["$symbol@trade"]
         ];
         $this->ws->send(json_encode($payload, JSON_THROW_ON_ERROR));
 
@@ -139,6 +140,7 @@ class FeedCommand extends Command
 
     private function unsubscribe(string $symbol) : void
     {
+        $symbol = strtolower($symbol);
         $this->subscribe($symbol, true);
 
         $key = array_search($symbol, $this->subs);
