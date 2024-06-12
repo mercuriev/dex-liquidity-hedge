@@ -48,7 +48,7 @@ class UnitaryHedgeBuy extends UnitaryHedge
             if ($trade->price < $this->median
                 && $secEMA->now() < $this->median
                 && $secEMA->isDescending(10, 0.8)
-                && $minEMA->now() < $this->low
+                && $minEMA->now() < $this->median
             )
             {
                 $flip = $this->flip($this->order);
