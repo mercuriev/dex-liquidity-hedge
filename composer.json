@@ -8,7 +8,7 @@
     "bunny/bunny": "dev-master",
     "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
-    "laminas/laminas-servicemanager": "3.23.x-dev",
+    "laminas/laminas-servicemanager": "^3.22",
     "symfony/console": "^v7.1.1",
     "friendsofphp/proxy-manager-lts": "^v1.0.18",
     "laminas/laminas-config-aggregator": "^1.15.0",
