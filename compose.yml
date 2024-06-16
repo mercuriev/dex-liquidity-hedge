@@ -81,7 +81,7 @@ services:
   pancake:
     depends_on:
       - rabbitmq
-    image: node:14
+    image: node
     container_name: pancake
     working_dir: /srv
     command: ["node", "src/index.js"]
