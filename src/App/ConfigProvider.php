@@ -38,7 +38,7 @@ class ConfigProvider
                 'pool:withdraw'     => Command\Pool\PoolWithdrawCommand::class,
             ],
             'feed' => [
-                'symbols' => ['bnbfdusd']
+                'symbols' => ['fdusdusdt']
             ],
             'rabbitmq' => [
                 'host' => 'rabbitmq',
