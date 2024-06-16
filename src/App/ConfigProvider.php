@@ -33,7 +33,9 @@ class ConfigProvider
                 'monitor:range'     => MonitorRangeCommand::class,
                 'monitor:inventory' => MonitorInventoryCommand::class,
                 'telegram:start'    => Telegram\StartCommand::class,
-                'pool:mint'         => Command\PoolMintCommand::class,
+                'pool:mint'         => Command\Pool\PoolMintCommand::class,
+                'pool:stake'        => Command\Pool\PoolStakeCommand::class,
+                'pool:withdraw'     => Command\Pool\PoolWithdrawCommand::class,
             ],
             'feed' => [
                 'symbols' => ['bnbfdusd']

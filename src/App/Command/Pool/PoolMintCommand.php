@@ -1,5 +1,5 @@
 <?php
-namespace App\Command;
+namespace App\Command\Pool;
 
 use Amqp\Channel;
 use Amqp\Message;
