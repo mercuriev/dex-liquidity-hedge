@@ -2,6 +2,10 @@ volumes:
   rabbitmq:
   mysql:
 
+secrets:
+  wallet:
+    file: ./wallet.pkey
+
 services:
   # The APP's business logic
   hedge:
@@ -71,6 +75,19 @@ services:
     restart: on-failure
     volumes:
       - .:/srv
+
+  # blockchain interactions
+  pancake:
+    depends_on:
+      - rabbitmq
+    image: node:14
+    container_name: pancake
+    working_dir: /srv
+    command: ["node", "src/index.js"]
+    volumes:
+      - ./pancake:/srv:ro
+    secrets:
+      - wallet
 
   # AMQP message queue to enable multitasking in PHP
   rabbitmq:
