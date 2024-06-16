@@ -6,6 +6,7 @@
     "ext-pdo": "*",
     "ext-bcmath": "*",
     "bunny/bunny": "dev-master",
+    "laminas/laminas-hydrator": ">=4.15.0",
     "mercuriev/binance": "dev-master",
     "laminas/laminas-log": "dev-master",
     "laminas/laminas-servicemanager": "^3.22",
