@@ -32,7 +32,8 @@ class ConfigProvider
                 'cancel'            => CancelCommand::class,
                 'monitor:range'     => MonitorRangeCommand::class,
                 'monitor:inventory' => MonitorInventoryCommand::class,
-                'telegram:start'    => Telegram\StartCommand::class
+                'telegram:start'    => Telegram\StartCommand::class,
+                'pool:mint'         => Command\PoolMintCommand::class,
             ],
             'feed' => [
                 'symbols' => ['bnbfdusd']
