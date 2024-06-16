@@ -4,7 +4,7 @@ volumes:
 
 secrets:
   wallet:
-    file: ./wallet.pkey
+    file: ./config/local/wallet.pkey
 
 services:
   # The APP's business logic
@@ -77,6 +77,7 @@ services:
       - .:/srv
 
   # blockchain interactions
+  # MUST run npm install in pancake/ before running this
   pancake:
     depends_on:
       - rabbitmq
