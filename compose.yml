@@ -18,6 +18,16 @@ services:
     volumes:
       - .:/srv
 
+  liquidity:
+    depends_on:
+      - rabbitmq
+    image: node
+    container_name: js
+    working_dir: /srv
+    command: [ "node", "js/liquidity.js" ]
+    volumes:
+      - ./:/srv:ro
+
   telegram:
     depends_on:
       - rabbitmq
