@@ -1,40 +1,53 @@
-const { ethers } = require('ethers');
 const { Pool } = require('./uniswap/Pool');
-const { Pool: V3Pool, Position, tickToPrice } = require('@uniswap/v3-sdk');
+const { Pool: V3Pool, Position } = require('@uniswap/v3-sdk');
+const { PositionManager } = require('./uniswap/PositionManager');
+const { PoolFactory } = require('./uniswap/PoolFactory');
+const sprintf = require('sprintf-js').sprintf;
 
-const nftManager = new ethers.Contract(
-    '0x46A15B0b27311cedF172AB29E4f4766fbE7F4364',
-    require('@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json').abi,
-    new ethers.JsonRpcProvider('https://arb1.arbitrum.io/rpc')
-);
+// TODO - get token id from user input
+const tokenId = 134574;
 
-Pool.factory('0x389938cf14be379217570d8e4619e51fbdafaa21').then(pool =>
+(async () =>
 {
-    console.log('Listening for swaps on pool: ', pool.symbol);
+    // Initial fetch of pool address for given LP token so that we listen on this pool
+    const position = await PositionManager.positions(tokenId);
+    const pool = await Pool.factory(await PoolFactory.getPool(
+        position[2],    // token0
+        position[3],    // token1
+        position[4]     // fee
+    ));
+    console.info(sprintf(
+        //'%s#%u : %.2f - %.2f : %.6f %s / %.2f %s',
+        '%s LP#%u : %.2f - %.2f',
+        pool.symbol, tokenId,
+        pool.tickToPrice(position[5]), pool.tickToPrice(position[6]),
+    ));
 
-    pool.onSwap((event) => {
-        console.log('amount0: ', event[2]);
-        console.log('amount1: ', event[3]);
-        console.log('sqrtPriceX96: ', event[4]);
-        console.log('liquidity: ', event[5]);
-        console.log('tick: ', event[6]);
-        console.log('tickToPrice: ', tickToPrice(pool.token0, pool.token1, Number(event[6])).toSignificant(6));
+    // Track position liquidity each time a swap occurs
+    let lastPrice = null;
+    pool.onSwap((swap) => {
+        const poolState = new V3Pool(pool.token0, pool.token1, pool.fee, swap.sqrtPriceX96, swap.liquidity, swap.tick);
+        const price = poolState.token0Price.toSignificant(6);
 
-        const p = new V3Pool(pool.token0, pool.token1, pool.fee, String(event[4]), String(event[5]), Number(event[6]));
-        //console.log(p);
-        console.log('Token0 price: ', p.token0Price.toSignificant(6));
+        if (lastPrice === price) return;
+        lastPrice = price;
 
-        nftManager.positions(134574).then(res => {
-            const position = new Position({
-                pool: p,
+        console.log(pool.symbol, 'price:', price);
+
+        PositionManager.positions(tokenId).then(res => {
+            const pos = new Position({
+                pool: poolState,
                 liquidity: String(res[7]),
                 tickLower: Number(res[5]),
                 tickUpper: Number(res[6])}
             );
-            console.log(position.amount0.currency.symbol + ': ', position.amount0.toSignificant(6));
-            console.log(position.amount1.currency.symbol + ': ', position.amount1.toSignificant(6));
+            // 4 digits is the binance LOT_SIZE
+            console.log(sprintf(
+                'LP#%u : %.4f %s / %.2f %s',
+                tokenId,
+                pos.amount0.toFixed(4), pos.amount0.currency.symbol,
+                pos.amount1.toFixed(2), pos.amount1.currency.symbol
+            ));
         });
-
-        console.log('---');
-    })
-});
+    });
+})();

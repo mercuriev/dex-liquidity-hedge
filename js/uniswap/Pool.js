@@ -1,8 +1,13 @@
-const { ethers, provider } = require('../config/ethers');
-const { Token, ChainId, JSBI, Percent } =  require('@uniswap/sdk');
+const {
+    ethers,
+    provider
+} = require('../config/ethers');
+const { ChainId, Token, JSBI, Percent } =  require('@uniswap/sdk-core');
+const { Pool: V3Pool, tickToPrice } = require('@uniswap/v3-sdk');
 const IUniswapV3PoolABI = require('@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json').abi;
 const ERC20Abi = require('erc-20-abi');
 const { alchemy } = require('../config/alchemy');
+const { Utils } = require('alchemy-sdk');
 
 class Pool {
     constructor(address) {
@@ -182,21 +187,36 @@ class Pool {
         });
     }
 
+    /// @notice Emitted by the pool for any swaps between token0 and token1
+    /// @param sender The address that initiated the swap call, and that received the callback
+    /// @param recipient The address that received the output of the swap
+    /// @param amount0 The delta of the token0 balance of the pool
+    /// @param amount1 The delta of the token1 balance of the pool
+    /// @param sqrtPriceX96 The sqrt(price) of the pool after the swap, as a Q64.96
+    /// @param liquidity The liquidity of the pool after the swap
+    /// @param tick The log base 1.0001 of price of the pool after the swap
     onSwap(callback) {
+        const eventDescription = this.contract.interface.getEvent('Swap');
         const filter = {
             address: this.address,
-            topics: [
-                '0x19b47279256b2a23a1665c810c8d55a1758940ee09377d4f8d26497a3577dc83' // swap event
-            ]
+            // panckaeswap appends two fields to the event, so here is manual signature, not from ABI
+            topics: [ Utils.id('Swap(address,address,int256,int256,uint160,uint128,int24,uint128,uint128)') ]
         }
         // websockets connection to logs
         alchemy.ws.on(filter, (log) => {
-            // Decode the event data
-            const eventDescription = this.contract.interface.getEvent('Swap');
-            const decodedData = this.contract.interface.decodeEventLog(eventDescription, log.data);
-
-            callback(decodedData);
+            const data = this.contract.interface.decodeEventLog(eventDescription, log.data);
+            callback({
+                amount0: String(data.amount0),
+                amount1: String(data.amount1),
+                sqrtPriceX96: String(data.sqrtPriceX96),
+                liquidity: String(data.liquidity),
+                tick: Number(data.tick)
+            });
         });
+    }
+
+    tickToPrice(tick) {
+        return tickToPrice(this.token0, this.token1, Number(tick)).toSignificant(6);
     }
 }
 
