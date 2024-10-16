@@ -2,9 +2,8 @@ const ethers = require('ethers');
 const ERC20Abi = require('erc-20-abi');
 const IUniswapV3PoolABI = require('@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json');
 const { provider, wallet} = require('./wallet');
-const { Pool: UniswapPool, tickToPrice, NonfungiblePositionManager, Position, Multicall} = require("@uniswap/v3-sdk");
+const { Pool: UniswapPool, tickToPrice, NonfungiblePositionManager, Position } = require("@uniswap/v3-sdk");
 const { Token, ChainId, JSBI, Percent } =  require('@uniswap/sdk');
-const {FunctionFragment} = require("ethers");
 
 const nftManager = new ethers.Contract(
     '0x46A15B0b27311cedF172AB29E4f4766fbE7F4364',
