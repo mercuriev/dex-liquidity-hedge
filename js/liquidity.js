@@ -5,16 +5,7 @@ const { PositionManager } = require('./uniswap/PositionManager');
 const { PoolFactory } = require('./uniswap/PoolFactory');
 const sprintf = require('sprintf-js').sprintf;
 
-// TODO - get token id from user input
-const tokenId = 134574;
-
-(async () =>
-{
-    // if connection fails all below is useless
-    let ch = await amqp.connect('amqp://rabbitmq');
-    ch = await ch.createChannel();
-    ch.assertExchange('lp', 'topic', {durable: true});
-
+async function watch(tokenId, ch) {
     // Initial fetch of pool address for given LP token so that we listen on this pool
     const LP = await PositionManager.positions(tokenId);
     const pool = await Pool.factory(await PoolFactory.getPool(
@@ -57,5 +48,23 @@ const tokenId = 134574;
             amount0: position.amount0.toFixed(4),
             amount1: position.amount1.toFixed(2)
         })));
+    });
+}
+
+(async () =>
+{
+    // if connection fails all below is useless
+    let ch = await amqp.connect('amqp://rabbitmq');
+    ch = await ch.createChannel();
+    ch.assertExchange('lp', 'topic', {durable: true});
+
+    const q = await ch.assertQueue('liquidity', {exclusive: true});
+    ch.bindQueue(q.queue, 'lp', 'start.*');
+    ch.bindQueue(q.queue, 'lp', 'stop.*');
+
+    ch.consume(q.queue, async (msg) => {
+        const tokenId = msg.fields.routingKey.split('.')[1];
+        await watch(tokenId, ch);
+        ch.ack(msg);
     });
 })();
