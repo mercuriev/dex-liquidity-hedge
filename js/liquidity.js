@@ -62,9 +62,12 @@ async function watch(tokenId, ch) {
     ch.bindQueue(q.queue, 'lp', 'start.*');
     ch.bindQueue(q.queue, 'lp', 'stop.*');
 
+    // listen only one pool at a time
+    await ch.prefetch(1);
+
     ch.consume(q.queue, async (msg) => {
         const tokenId = msg.fields.routingKey.split('.')[1];
         await watch(tokenId, ch);
-        ch.ack(msg);
+        //ch.ack(msg); !!! never ack to enable QOS limit
     });
 })();
