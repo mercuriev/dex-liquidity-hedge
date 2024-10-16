@@ -1,3 +1,4 @@
+const amqp = require('amqplib')
 const { Pool } = require('./uniswap/Pool');
 const { Pool: V3Pool, Position } = require('@uniswap/v3-sdk');
 const { PositionManager } = require('./uniswap/PositionManager');
@@ -9,6 +10,11 @@ const tokenId = 134574;
 
 (async () =>
 {
+    // if connection fails all below is useless
+    let ch = await amqp.connect('amqp://rabbitmq');
+    ch = await ch.createChannel();
+    ch.assertExchange('lp', 'topic', {durable: true});
+
     // Initial fetch of pool address for given LP token so that we listen on this pool
     const LP = await PositionManager.positions(tokenId);
     const pool = await Pool.factory(await PoolFactory.getPool(
@@ -41,5 +47,15 @@ const tokenId = 134574;
             position.amount0.toFixed(4), position.amount0.currency.symbol,
             position.amount1.toFixed(2), position.amount1.currency.symbol
         ));
+
+        ch.publish('lp', pool.symbol, Buffer.from(JSON.stringify({
+            pool: pool.symbol,
+            tokenId: tokenId,
+            low: pool.tickToPrice(LP[5]),
+            high: pool.tickToPrice(LP[6]),
+            price: price,
+            amount0: position.amount0.toFixed(4),
+            amount1: position.amount1.toFixed(2)
+        })));
     });
 })();
