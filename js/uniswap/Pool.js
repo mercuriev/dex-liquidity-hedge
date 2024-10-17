@@ -2,12 +2,14 @@ const {
     ethers,
     provider
 } = require('../config/ethers');
-const { ChainId, Token, JSBI, Percent } =  require('@uniswap/sdk-core');
-const { Pool: V3Pool, tickToPrice } = require('@uniswap/v3-sdk');
+const { Token, ChainId, JSBI, Percent } =  require('@uniswap/sdk');
+const { Pool: V3Pool, Position, tickToPrice, NonfungiblePositionManager} = require('@uniswap/v3-sdk');
 const IUniswapV3PoolABI = require('@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json').abi;
 const ERC20Abi = require('erc-20-abi');
 const { alchemy } = require('../config/alchemy');
 const { Utils } = require('alchemy-sdk');
+const { PositionManager } = require('./PositionManager');
+const { wallet } = require('../config/wallet');
 
 class Pool {
     constructor(address) {
@@ -50,16 +52,13 @@ class Pool {
 
     async mint(amount0, amount1, low, high)
     {
-        await this.approve(nftManager.target);
-
         // fetch current pool state (price and tick)
-        const [liquidity, slot0, ticks] = await Promise.all([
+        const [liquidity, slot0] = await Promise.all([
             this.contract.liquidity(),
-            this.contract.slot0(),
-            this.contract.ticks(-10000)
+            this.contract.slot0()
         ]);
 
-        const poolState = new UniswapPool(
+        const poolState = new V3Pool(
             this.token0,
             this.token1,
             this.fee,
@@ -69,6 +68,7 @@ class Pool {
         );
 
         const [tickLower, tickHigher] = this.findTicksForPrices(poolState, slot0, low, high);
+        if (tickLower === tickHigher) throw new Error('Invalid tick range: same tick');
 
         const position = Position.fromAmounts({
             pool: poolState,
@@ -84,10 +84,11 @@ class Pool {
             deadline: Math.floor(Date.now() / 1000) + 60 * 20,
             slippageTolerance: new Percent(50, 10_000),
         };
-
+        // TODO check allowance first
+        await this.approve(PositionManager.target);
         const { calldata, value } = NonfungiblePositionManager.addCallParameters(position, mintOptions);
         const transaction = {
-            to: nftManager.target,
+            to: PositionManager.target,
             from: wallet.address,
             data: calldata,
             value: value,
@@ -106,7 +107,7 @@ class Pool {
             tokenId: tokenId
         });
         const tx = {
-            to: nftManager.target,
+            to: PositionManager.target,
             from: wallet.address,
             data: params.calldata,
             value: params.value
@@ -116,7 +117,7 @@ class Pool {
 
     async withdraw(tokenId)
     {
-        const position = await nftManager.positions(tokenId);
+        const position = await PositionManager.positions(tokenId);
         if (position[7] === 0n) throw new Error('Position already withdrawn');
 
         let calls = []; // it's a multicall
@@ -135,11 +136,11 @@ class Pool {
         ]));
 
         // if NOT STAKED then call ntfManager, if staked masterChef
-        const owner = await nftManager.ownerOf(tokenId);
+        const owner = await PositionManager.ownerOf(tokenId);
         if (owner === masterChef.target) {
             return masterChef.multicall(calls.map(call => call.data));
         } else {
-            return nftManager.multicall(calls.map(call => call.data));
+            return PositionManager.multicall(calls.map(call => call.data));
         }
     }
 
@@ -149,27 +150,27 @@ class Pool {
      *
      * @param poolContract
      * @param slot0
-     * @param float0
-     * @param float1
+     * @param low
+     * @param high
      */
-    findTicksForPrices(poolContract, slot0, float0, float1)
+    findTicksForPrices(poolContract, slot0, low, high)
     {
         // hardcode the range of ticks to search for the given prices for efficiency
-        const lowestTick = Number(slot0.tick) - 10000 * poolContract.tickSpacing;
-        const highestTick = Number(slot0.tick) + 10000 * poolContract.tickSpacing;
+        const lowestTick = Number(slot0.tick) - 1000 * poolContract.tickSpacing;
+        const highestTick = Number(slot0.tick) + 1000 * poolContract.tickSpacing;
         let lowTick = null;
         let highTick = null;
         for (let tick = lowestTick; tick < highestTick; tick += poolContract.tickSpacing) {
             const price = tickToPrice(this.token0, this.token1, tick).toSignificant();
-            if (lowTick === null && price > float0) {
+            if (lowTick === null && price > low) {
                 lowTick = tick;
-                if (Number(float1) === 0) {
+                if (Number(high) === 0) {
                     lowTick += poolContract.tickSpacing;
                 }
             }
-            if (highTick === null && price > float1) {
+            if (highTick === null && price > high) {
                 highTick = tick;
-                if (Number(float0) === 0) {
+                if (Number(low) === 0) {
                     highTick -= poolContract.tickSpacing;
                 }
             }
