@@ -12,8 +12,8 @@ use function Binance\json_encode_pretty;
 
 class PoolMintCommand extends Command
 {
-    const string EXCHANGE = 'pool';
-    const int RPC_TIMEOUT = 60;
+    const string EXCHANGE = 'arbitrum';
+    const int RPC_TIMEOUT = 30;
 
     public function __construct(
         private readonly Logger $log,
@@ -42,12 +42,13 @@ class PoolMintCommand extends Command
         $amount1 = $input->getArgument('amount1');
 
         $content = json_encode_pretty([
+            'pool'      => $pool,
             'amount0'   => $amount0,
             'amount1'   => $amount1,
             'low'       => $low,
             'high'      => $high,
         ]);
-        $rkey = "$pool.mint";
+        $rkey = "mint";
 
         $message = new Message($content);
 

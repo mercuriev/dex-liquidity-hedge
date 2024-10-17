@@ -18,6 +18,16 @@ services:
     volumes:
       - .:/srv
 
+  arbitrum:
+    depends_on:
+      - rabbitmq
+    image: node
+    container_name: arbitrum
+    working_dir: /srv
+    command: [ "node", "js/arbitrum.js" ]
+    volumes:
+      - ./:/srv:ro
+
   liquidity:
     depends_on:
       - rabbitmq
