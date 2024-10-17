@@ -29,7 +29,15 @@ async function mint(msg, ch){
 }
 
 async function stake(msg, ch){
+    const { tokenId } = JSON.parse(msg.content.toString());
 
+    console.info('Staking token to farm: ' + tokenId);
+    const pool = new Pool; // not required to fetch pool data
+    const response = await pool.stake(tokenId);
+    const receipt = await response.wait(1);
+    console.info(util.format('Staked token %s', tokenId));
+    ch.publish('', msg.properties.replyTo, Buffer.from(JSON.stringify(receipt)));
+    ch.ack(msg);
 }
 
 async function withdraw(msg, ch){

@@ -10,6 +10,7 @@ const { alchemy } = require('../config/alchemy');
 const { Utils } = require('alchemy-sdk');
 const { PositionManager } = require('./PositionManager');
 const { wallet } = require('../config/wallet');
+const { masterChef } = require('../config/pancake');
 
 class Pool {
     constructor(address) {
