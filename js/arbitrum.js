@@ -41,7 +41,15 @@ async function stake(msg, ch){
 }
 
 async function withdraw(msg, ch){
+    const { tokenId } = JSON.parse(msg.content.toString());
 
+    console.info('Withdrawing liquidity: ' + tokenId);
+    const pool = new Pool; // not required to fetch pool data
+    const res = await pool.withdraw(tokenId);
+    const receipt = await res.wait(1);
+    console.info(util.format('Withdrew liquidity from token %s', tokenId));
+    ch.publish('', msg.properties.replyTo, Buffer.from(JSON.stringify(receipt)));
+    ch.ack(msg);
 }
 
 amqp.connect('amqp://rabbitmq').then(async (conn) => {

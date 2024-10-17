@@ -12,8 +12,8 @@ use function Binance\json_encode_pretty;
 
 class PoolWithdrawCommand extends Command
 {
-    const string EXCHANGE = 'pool';
-    const int RPC_TIMEOUT = 60;
+    const string EXCHANGE = 'arbitrum';
+    const int RPC_TIMEOUT = 30;
 
     public function __construct(
         private readonly Logger $log,
@@ -25,15 +25,15 @@ class PoolWithdrawCommand extends Command
 
     public function configure(): void
     {
-        $this->addArgument('tokenId', InputArgument::REQUIRED, 'Pool Address');
+        $this->addArgument('tokenId', InputArgument::REQUIRED, 'Token ID');
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
         $tokenId = $input->getArgument('tokenId');
 
-        $message = new Message();
-        $rkey = "$tokenId.withdraw";
+        $message = new Message(['tokenId' => $tokenId]);
+        $rkey = "withdraw";
         $reply = $this->ch->call($message, self::EXCHANGE, $rkey, self::RPC_TIMEOUT);
         if ($reply) {
             $reply = json_decode($reply->content, true, 512, JSON_THROW_ON_ERROR);
