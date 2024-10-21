@@ -5,7 +5,6 @@ const {
 const { Token, ChainId, JSBI, Percent } =  require('@uniswap/sdk');
 const { Pool: V3Pool, Position, tickToPrice, NonfungiblePositionManager} = require('@uniswap/v3-sdk');
 const IUniswapV3PoolABI = require('@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json').abi;
-const ERC20Abi = require('erc-20-abi');
 const { alchemy } = require('../config/alchemy');
 const { Utils } = require('alchemy-sdk');
 const { PositionManager } = require('./PositionManager');
@@ -21,17 +20,6 @@ class Pool {
     static async factory(address) {
         const self = new Pool(address);
         self.contract = new ethers.Contract(address, IUniswapV3PoolABI, provider);
-        const buildToken = async function(tokenAddress) {
-            const contract = new ethers.Contract(tokenAddress, ERC20Abi, provider);
-            const info = await Promise.all([
-                contract.decimals(),
-                contract.symbol(),
-                contract.name()
-            ]);
-            const token = new Token(ChainId.MAINNET, tokenAddress, Number(info[0]), info[1], info[2]);
-            token.contract = contract;
-            return token;
-        };
         self.token0 = await buildToken(await self.contract.token0());
         self.token1 = await buildToken(await self.contract.token1());
         self.symbol = self.token0.symbol + '-' + self.token1.symbol;
