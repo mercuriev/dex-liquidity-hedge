@@ -96,20 +96,6 @@ services:
     volumes:
       - .:/srv
 
-  # blockchain interactions
-  # MUST run npm install in pancake/ before running this
-  pancake:
-    depends_on:
-      - rabbitmq
-    image: node
-    container_name: pancake
-    working_dir: /srv
-    command: ["node", "src/index.js"]
-    volumes:
-      - ./pancake:/srv:ro
-    secrets:
-      - wallet
-
   # AMQP message queue to enable multitasking in PHP
   rabbitmq:
     hostname: rabbitmq # must be defined for data durability so that db file has always same name
