@@ -27,6 +27,8 @@ services:
     command: [ "node", "js/arbitrum.js" ]
     volumes:
       - ./:/srv:ro
+    secrets:
+      - wallet
 
   liquidity:
     depends_on:
