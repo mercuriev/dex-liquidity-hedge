@@ -6,6 +6,8 @@ const { PoolFactory } = require('./uniswap/PoolFactory');
 const sprintf = require('sprintf-js').sprintf;
 
 async function watch(tokenId, ch) {
+    console.log('Watching LP token: ' + tokenId);
+
     // Initial fetch of pool address for given LP token so that we listen on this pool
     const LP = await PositionManager.positions(tokenId);
     const pool = await Pool.factory(await PoolFactory.getPool(
@@ -32,7 +34,8 @@ async function watch(tokenId, ch) {
         );
         // 4 digits is the binance LOT_SIZE
         console.log(sprintf(
-            '%s#%u (%.2f-%.2f) : %.2f : %.4f %s / %.2f %s',
+            '%s %s#%u (%.2f-%.2f) : %.2f : %.4f %s / %.2f %s',
+            new Date().toLocaleTimeString('en-US', { hour12: false }),
             pool.symbol, tokenId,
             pool.tickToPrice(LP[5]), pool.tickToPrice(LP[6]), price,
             position.amount0.toFixed(4), position.amount0.currency.symbol,
