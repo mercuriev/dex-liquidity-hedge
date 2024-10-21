@@ -61,16 +61,13 @@ async function watch(tokenId, ch) {
     ch = await ch.createChannel();
     ch.assertExchange('lp', 'topic', {durable: true});
 
-    const q = await ch.assertQueue('liquidity', {exclusive: true});
+    const q = await ch.assertQueue('liquidity');
     ch.bindQueue(q.queue, 'lp', 'start.*');
     ch.bindQueue(q.queue, 'lp', 'stop.*');
-
-    // listen only one pool at a time
-    await ch.prefetch(1);
 
     ch.consume(q.queue, async (msg) => {
         const tokenId = msg.fields.routingKey.split('.')[1];
         await watch(tokenId, ch);
-        //ch.ack(msg); !!! never ack to enable QOS limit
+        ch.ack(msg);
     });
 })();
