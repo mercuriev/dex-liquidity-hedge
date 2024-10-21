@@ -10,7 +10,8 @@ const { alchemy } = require('../config/alchemy');
 const { Utils } = require('alchemy-sdk');
 const { PositionManager } = require('./PositionManager');
 const { wallet } = require('../config/wallet');
-const { masterChef } = require('../config/pancake');
+const { MasterChef } = require('../config/pancake');
+const { buildToken } = require('./Token');
 
 class Pool {
     constructor(address) {
@@ -104,7 +105,7 @@ class Pool {
     {
         const params = NonfungiblePositionManager.safeTransferFromParameters({
             sender: wallet.address,
-            recipient: masterChef.target,
+            recipient: MasterChef.target,
             tokenId: tokenId
         });
         const tx = {
@@ -122,24 +123,24 @@ class Pool {
         if (position[7] === 0n) throw new Error('Position already withdrawn');
 
         let calls = []; // it's a multicall
-        calls.push(await masterChef.getFunction('decreaseLiquidity').populateTransaction([
+        calls.push(await MasterChef.getFunction('decreaseLiquidity').populateTransaction([
             tokenId,
             position[7],
             position[10],
             position[11],
             Math.floor(Date.now() / 1000) + 60 * 20
         ]));
-        calls.push(await masterChef.getFunction('collect').populateTransaction([
+        calls.push(await MasterChef.getFunction('collect').populateTransaction([
             tokenId,
             wallet.address,
             BigInt(2 ** 127),
             BigInt(2 ** 127)
         ]));
 
-        // if NOT STAKED then call ntfManager, if staked masterChef
+        // if NOT STAKED then call ntfManager, if staked MasterChef
         const owner = await PositionManager.ownerOf(tokenId);
-        if (owner === masterChef.target) {
-            return masterChef.multicall(calls.map(call => call.data));
+        if (owner === MasterChef.target) {
+            return MasterChef.multicall(calls.map(call => call.data));
         } else {
             return PositionManager.multicall(calls.map(call => call.data));
         }
