@@ -32,11 +32,13 @@ services:
     depends_on:
       - rabbitmq
     image: node
-    container_name: js
+    container_name: liquidity
     working_dir: /srv
     command: [ "node", "js/liquidity.js" ]
     volumes:
       - ./:/srv:ro
+    secrets:
+      - wallet
 
   telegram:
     depends_on:
