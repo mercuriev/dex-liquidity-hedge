@@ -3,7 +3,7 @@ const {
     provider
 } = require('../config/ethers');
 const { Token, ChainId, JSBI, Percent } =  require('@uniswap/sdk');
-const { Pool: V3Pool, Position, tickToPrice, NonfungiblePositionManager} = require('@uniswap/v3-sdk');
+const { Pool: V3Pool, Position, tickToPrice, NonfungiblePositionManager, UniswapV3Pool} = require('@uniswap/v3-sdk');
 const IUniswapV3PoolABI = require('@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json').abi;
 const { alchemy } = require('../config/alchemy');
 const { Utils } = require('alchemy-sdk');
@@ -25,6 +25,21 @@ class Pool {
         self.symbol = self.token0.symbol + '-' + self.token1.symbol;
         self.fee    = Number(await self.contract.fee());
         return self;
+    }
+
+    async getState(forceRefresh = false)
+    {
+        if (!forceRefresh && this.state) return this.state;
+
+        const slot0 = await this.contract.slot0();
+        const liquidity = await this.contract.liquidity();
+
+        return this.state = new V3Pool(this.token0, this.token1, this.fee, String(slot0[0]), String(liquidity), Number(slot0[1]));
+    }
+
+    async getCurrentPrice() {
+        const state = await this.getState();
+        return state.token0Price.toFixed(2);
     }
 
     async approve(spender) {
